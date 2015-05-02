@@ -1,3 +1,3 @@
 #!/bin/bash
 
-$(dirname $0)/update-submodule.sh VisualEditor $1
+$(dirname $0)/update.sh -p VisualEditor -s -v $1

@@ -1,14 +1,38 @@
 #!/bin/bash
 
-newBranch=$2
-project=$1
+# Options:
+#  -p Project name of the extension to update
+#  -v Version To which version branch this extension should be upgraded (will be used with -w to form -w/-v)
+#  -u Path branch path to use, default ssh://florianschmidtwelzow@gerrit.wikimedia.org:29418/mediawiki/extensions/
+#  -w Version-prefix prefix used to build version branch to fecth from (default: wmf)
+#  -s Submodules should submodules updated, too?
 
-if [ -z "$3" ]
-  then
-	branchPath="ssh://florianschmidtwelzow@gerrit.wikimedia.org:29418/mediawiki/extensions/"
-  else
-	branchPath=$3
-fi
+branchPath="ssh://florianschmidtwelzow@gerrit.wikimedia.org:29418/mediawiki/extensions/"
+wmf="wmf"
+submodule="false"
+
+while getopts ":u:v:p:w:s" opt; do
+  case $opt in
+    u)
+      branchPath=$OPTARG
+      ;;
+    v)
+      newBranch=$OPTARG
+      ;;
+    p)
+      project=$OPTARG
+      ;;
+    w)
+      wmf=$OPTARG
+      ;;
+    s)
+      submodule="true"
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      ;;
+  esac
+done
 
 function coloredEcho(){
     local exp=$1;
@@ -29,8 +53,16 @@ function coloredEcho(){
     echo $exp;
     tput sgr0;
 }
+updatestring="Starting update of $project to $wmf/$newBranch"
 
-coloredEcho "Starting update of $project to wmf/$newBranch" green
+if [ $submodule = true ] ; then
+  updatestring="$updatestring with"
+else
+  updatestring="$updatestring without"
+fi
+updatestring="$updatestring submodules using $branchPath."
+
+echo $updatestring
 
 #exec ssh-agent bash
 shopt -s dotglob
@@ -49,7 +81,12 @@ coloredEcho "clone the latest revision" green
 git clone $branchPath$project .
 coloredEcho "fetch new branch" green
 git fetch
-git checkout wmf/$newBranch
+git checkout $wmf/$newBranch
+
+if [ $submodule = true ] ; then
+  coloredEcho "Update submodules" green
+  git submodule update --init
+fi
 
 coloredEcho "Get version information" green
 sha1=`cat .git/refs/heads/wmf/$newBranch`
