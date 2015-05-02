@@ -1,0 +1,6 @@
+[gerrit]
+host=gerrit.go2tech.de
+port=29418
+project=droidwiki/operations/update-tools.git
+defaultbranch=master
+defaultrebase=0
