@@ -10,8 +10,9 @@
 branchPath="ssh://florianschmidtwelzow@gerrit.wikimedia.org:29418/mediawiki/extensions/"
 wmf="wmf"
 submodule="false"
+keepignore="false"
 
-while getopts ":u:v:p:w:s" opt; do
+while getopts ":u:v:p:w:sk" opt; do
   case $opt in
     u)
       branchPath=$OPTARG
@@ -27,6 +28,9 @@ while getopts ":u:v:p:w:s" opt; do
       ;;
     s)
       submodule="true"
+      ;;
+    k)
+      keepignore="true"
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -86,6 +90,7 @@ git checkout $wmf/$newBranch
 if [ $submodule = true ] ; then
   coloredEcho "Update submodules" green
   git submodule update --init
+  composer update
 fi
 
 coloredEcho "Get version information" green
@@ -95,12 +100,18 @@ sha1=`cat .git/refs/heads/wmf/$newBranch`
 
 coloredEcho "delete unnecessary files and folders" green
 rm -rf .git .gitreview
+if [ $keepignore = true ] ; then
+  rm -rf .gitignore
+fi
 cd ..
 
 coloredEcho "Move new revision" green
 mv * old/
 mv old/.git ./
 mv old/.gitreview ./
+if [ $keepignore = true ] ; then
+  mv old/.gitignore ./
+fi
 mv old/new/* ./
 rm -rf old
 
