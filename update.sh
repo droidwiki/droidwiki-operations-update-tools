@@ -6,13 +6,15 @@
 #  -u Path branch path to use, default ssh://florianschmidtwelzow@gerrit.wikimedia.org:29418/mediawiki/extensions/
 #  -w Version-prefix prefix used to build version branch to fecth from (default: wmf)
 #  -s Submodules should submodules updated, too?
+#  -d Debug Output all the spam!
 
 branchPath="ssh://florianschmidtwelzow@gerrit.wikimedia.org:29418/mediawiki/extensions/"
 wmf="wmf"
 submodule="false"
 keepignore="false"
+verbose="false"
 
-while getopts ":u:v:p:w:sk" opt; do
+while getopts ":u:v:p:w:skd" opt; do
   case $opt in
     u)
       branchPath=$OPTARG
@@ -32,6 +34,9 @@ while getopts ":u:v:p:w:sk" opt; do
     k)
       keepignore="true"
       ;;
+    d)
+      debug="true"
+      ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
       ;;
@@ -39,23 +44,25 @@ while getopts ":u:v:p:w:sk" opt; do
 done
 
 function coloredEcho(){
+  if [ $verbose = true ] ; then
     local exp=$1;
     local color=$2;
     if ! [[ $color =~ '^[0-9]$' ]] ; then
-       case $(echo $color | tr '[:upper:]' '[:lower:]') in
-        black) color=0 ;;
-        red) color=1 ;;
-        green) color=2 ;;
-        yellow) color=3 ;;
-        blue) color=4 ;;
-        magenta) color=5 ;;
-        cyan) color=6 ;;
-        white|*) color=7 ;; # white or invalid color
-       esac
+      case $(echo $color | tr '[:upper:]' '[:lower:]') in
+       black) color=0 ;;
+       red) color=1 ;;
+       green) color=2 ;;
+       yellow) color=3 ;;
+       blue) color=4 ;;
+       magenta) color=5 ;;
+       cyan) color=6 ;;
+       white|*) color=7 ;; # white or invalid color
+      esac
     fi
     tput setaf $color;
     echo $exp;
     tput sgr0;
+  fi
 }
 updatestring="Starting update of $project to $wmf/$newBranch"
 
