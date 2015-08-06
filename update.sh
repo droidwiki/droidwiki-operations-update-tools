@@ -89,7 +89,7 @@ mkdir {new,old}
 cd new
 
 coloredEcho "clone the latest revision" green
-git clone $branchPath$project .
+git clone -b $wmf/$newBranch --single-branch --depth 1 $branchPath$project .
 coloredEcho "fetch new branch" green
 git fetch
 git checkout $wmf/$newBranch
