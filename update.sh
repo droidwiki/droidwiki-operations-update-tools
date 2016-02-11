@@ -80,6 +80,13 @@ shopt -s dotglob
 
 coloredEcho "cd to $project" green
 cd $project/
+
+# check, if upgrade branch already exist and exit, if so
+if [ "`git branch --list upgrade/$newBranch`" ];
+then
+   echo "Branch name upgrade/$newBranch already exists. Exiting."
+   exit
+fi
 coloredEcho "Prepare git repository" green
 git checkout master
 git pull origin master
