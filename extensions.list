@@ -17,6 +17,7 @@ LdapAuthentication
 MobileFrontend
 MultimediaViewer
 MwEmbedSupport
+OATHAuth
 PageImages
 ParserFunctions
 Popups
