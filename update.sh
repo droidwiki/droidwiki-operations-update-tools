@@ -104,7 +104,6 @@ git checkout $wmf/$newBranch
 if [ $submodule = true ] ; then
   coloredEcho "Update submodules" green
   git submodule update --init
-  composer update
 fi
 
 coloredEcho "Get version information" green
