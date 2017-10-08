@@ -10,7 +10,6 @@
 
 branchPath="ssh://florianschmidtwelzow@gerrit.wikimedia.org:29418/mediawiki/extensions/"
 wmf="wmf"
-submodule="false"
 keepignore="false"
 verbose="false"
 
@@ -27,9 +26,6 @@ while getopts ":u:v:p:w:skd" opt; do
       ;;
     w)
       wmf=$OPTARG
-      ;;
-    s)
-      submodule="true"
       ;;
     k)
       keepignore="true"
@@ -64,18 +60,8 @@ function coloredEcho(){
     tput sgr0;
   fi
 }
-updatestring="Starting update of $project to $wmf/$newBranch"
+echo "Starting update of $project to $wmf/$newBranch using $branchPath."
 
-if [ $submodule = true ] ; then
-  updatestring="$updatestring with"
-else
-  updatestring="$updatestring without"
-fi
-updatestring="$updatestring submodules using $branchPath."
-
-echo $updatestring
-
-#exec ssh-agent bash
 shopt -s dotglob
 
 coloredEcho "cd to $project" green
@@ -89,15 +75,10 @@ mkdir {new,old}
 cd new
 
 coloredEcho "clone the latest revision" green
-git clone -b $wmf/$newBranch --single-branch --depth 1 $branchPath$project .
+git clone -b $wmf/$newBranch --single-branch --depth 1 --recursive $branchPath$project .
 coloredEcho "fetch new branch" green
 git fetch
 git checkout $wmf/$newBranch
-
-if [ $submodule = true ] ; then
-  coloredEcho "Update submodules" green
-  git submodule update --init
-fi
 
 coloredEcho "Get version information" green
 sha1=`cat .git/refs/heads/wmf/$newBranch`
