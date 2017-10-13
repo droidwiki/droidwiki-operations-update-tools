@@ -28,7 +28,7 @@ class Config {
 
 		if ( $cliOptions->getConfigPath() !== null ) {
 			$this->locationFileReference = new FileResource( $cliOptions->getConfigPath() );
-		} else if ( $locationOrConfiguration !== null ) {
+		} elseif ( $locationOrConfiguration !== null ) {
 			$this->locationFileReference = new FileResource( $locationOrConfiguration );
 		} else {
 			throw new \InvalidArgumentException( 'No configuration file specified' );
