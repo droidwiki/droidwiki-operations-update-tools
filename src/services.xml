@@ -9,6 +9,7 @@
 
     <services>
         <service id="config" class="DroidWiki\Updater\Config">
+            <argument type="service" id="clioptions" />
             <argument>%config.location%</argument>
         </service>
         <service id="updater" class="DroidWiki\Updater">

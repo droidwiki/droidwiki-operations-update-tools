@@ -21,6 +21,11 @@ class CliOptions implements LoggerAwareInterface {
 	 */
 	private $logger;
 
+	/**
+	 * @var string
+	 */
+	private $cwd;
+
 	public function __construct( GetOpt $options ) {
 		$this->options = $options;
 	}
@@ -32,6 +37,9 @@ class CliOptions implements LoggerAwareInterface {
 			Option::create( 'l', 'list', GetOpt::OPTIONAL_ARGUMENT )
 				->setDescription( 'If set, the extension names will be taken from the specified file and all ' .
 					'are updated.' ),
+			Option::create( 'c', 'config', GetOpt::OPTIONAL_ARGUMENT )
+				->setDescription( 'The location of the config JSON file, relative to the current ' .
+					'directory.' ),
 		] );
 		$this->options->addOperands( [
 			Operand::create( 'extension', Operand::OPTIONAL ),
@@ -95,5 +103,24 @@ class CliOptions implements LoggerAwareInterface {
 		}
 
 		return $this->options->getOperand( 0 );
+	}
+
+	public function getConfigPath() {
+		$configOption = $this->options->getOption( 'config' );
+		if ( !$configOption ) {
+			return null;
+		}
+		return $this->getCwd() . '/' . $configOption;
+	}
+
+	private function getCwd() {
+		if ( $this->cwd !== null ) {
+			return $this->cwd;
+		}
+		return getcwd();
+	}
+
+	public function setCwd( $cwd ) {
+		$this->cwd = $cwd;
 	}
 }

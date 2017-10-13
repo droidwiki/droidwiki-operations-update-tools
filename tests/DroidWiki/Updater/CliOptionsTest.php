@@ -154,4 +154,54 @@ class CliOptionsTest extends TestCase {
 		] );
 		$this->assertEquals( 'TestExtension', $cliOptions->getExtensionName() );
 	}
+
+	public function testGetConfigPathNotSet() {
+		$cliOptions = new CliOptions( new GetOpt() );
+		$cliOptions->setLogger( $this->logger );
+		$cliOptions->initOptions( [
+			'TestExtension',
+			'-v',
+			'10',
+		] );
+		$this->assertNull(
+			$cliOptions->getConfigPath(),
+			'If not config option was set, null should be returned for the config path'
+		);
+	}
+
+	public function testGetConfigPathShortName() {
+		$cliOptions = new CliOptions( new GetOpt() );
+		$cliOptions->setLogger( $this->logger );
+		$cliOptions->setCwd( __DIR__ . '/../..' );
+		$cliOptions->initOptions( [
+			'TestExtension',
+			'-v',
+			'10',
+			'-c',
+			'localConfigPath.json',
+		] );
+		$this->assertEquals(
+			__DIR__ . '/../../localConfigPath.json',
+			$cliOptions->getConfigPath(),
+			'Setting a config path with the short -c option should return this config path.'
+		);
+	}
+
+	public function testGetConfigPathLongName() {
+		$cliOptions = new CliOptions( new GetOpt() );
+		$cliOptions->setLogger( $this->logger );
+		$cliOptions->setCwd( __DIR__ . '/../..' );
+		$cliOptions->initOptions( [
+			'TestExtension',
+			'-v',
+			'10',
+			'--config',
+			'localConfigPath.json',
+		] );
+		$this->assertEquals(
+			__DIR__ . '/../../localConfigPath.json',
+			$cliOptions->getConfigPath(),
+			'Setting a config path with the long -config option should return this config path.'
+		);
+	}
 }

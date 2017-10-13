@@ -20,12 +20,19 @@ class Config {
 	 */
 	private $jsonConfig;
 
-	public function __construct( $locationOrConfiguration ) {
+	public function __construct( CliOptions $cliOptions, $locationOrConfiguration = null ) {
 		if ( is_array( $locationOrConfiguration ) ) {
 			$this->jsonConfig = $locationOrConfiguration;
 			return;
 		}
-		$this->locationFileReference = new FileResource( $locationOrConfiguration );
+
+		if ( $cliOptions->getConfigPath() !== null ) {
+			$this->locationFileReference = new FileResource( $cliOptions->getConfigPath() );
+		} else if ( $locationOrConfiguration !== null ) {
+			$this->locationFileReference = new FileResource( $locationOrConfiguration );
+		} else {
+			throw new \InvalidArgumentException( 'No configuration file specified' );
+		}
 		$this->load();
 	}
 

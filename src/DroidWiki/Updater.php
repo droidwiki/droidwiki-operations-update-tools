@@ -89,7 +89,7 @@ Forward to %s';
 
 		if ( $this->needsPush ) {
 			$this->getLogger()->info( 'Pushing changes...' );
-			$git->push();
+			//$git->push();
 		}
 	}
 

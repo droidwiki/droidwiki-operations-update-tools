@@ -1,0 +1,5 @@
+{
+	"git.push.remote": "git@gerrit.go2tech.de:extensions/%s.git",
+	"git.update.remote": "https://gerrit.wikimedia.org/r/mediawiki/skins/%s",
+	"version.prefix": "wmf/"
+}
