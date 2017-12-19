@@ -82,7 +82,8 @@ Forward to %s';
 			[ 'name' => $extName ] );
 
 		$git = $this->getGitFromExtensionName();
-		$git->checkout( 'master' );
+		$this->getLogger()->info( 'Cleaning repository with -d -f -x...' );
+		$git->clean( '-d', '-f', '-x' );
 		$this->fetchUpdateVersion( $git );
 
 		$this->mergeAndCommitChanges( $git );
@@ -201,6 +202,7 @@ Forward to %s';
 			's' => 'recursive',
 			'X' => 'theirs',
 			'squash' => true,
+			'allow-unrelated-histories' => true,
 		] );
 		if ( !$git->hasChanges() ) {
 			$this->needsPush = false;
