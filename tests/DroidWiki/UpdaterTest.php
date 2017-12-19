@@ -175,6 +175,7 @@ class UpdaterTest extends TestCase {
 				's' => 'recursive',
 				'X' => 'theirs',
 				'squash' => true,
+				'allow-unrelated-histories' => true
 			]
 		);
 		$workingCopy->expects( $this->once() )->method( 'fetch' )->with(
