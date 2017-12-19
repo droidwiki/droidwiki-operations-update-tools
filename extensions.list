@@ -12,7 +12,6 @@ ContentTranslation
 Disambiguator
 Echo
 Elastica
-Flow
 Gadgets
 GeoData
 GlobalUsage
@@ -35,7 +34,5 @@ TimedMediaHandler
 Translate
 UniversalLanguageSelector
 UserMerge
-VisualEditor
-Wikibase
 WikiEditor
 WikimediaMaintenance
