@@ -10,6 +10,7 @@
 
 branchPath="https://gerrit.wikimedia.org/r/mediawiki/extensions/"
 wmf="wmf"
+scriptPath="$( cd "$(dirname "$0")" ; pwd -P )"
 
 while getopts ":u:v:p:w:skd" opt; do
   case $opt in
@@ -90,7 +91,7 @@ git checkout -b $wmf/$newBranch upstream/$wmf/$newBranch &> /dev/null
 git pull &> /dev/null
 
 coloredEcho " | Applying patches, if available..." green
-for patch in $(dirname $0)/patches/$project/*.patch ; do
+for patch in $scriptPath/patches/$project/*.patch ; do
   coloredEcho " | Applying patch $patch..." green
   git am $patch
 done
