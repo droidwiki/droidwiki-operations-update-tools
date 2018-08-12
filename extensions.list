@@ -17,6 +17,7 @@ GlobalUsage
 InputBox
 Interwiki
 LdapAuthentication
+LoginNotify
 MobileFrontend
 MultimediaViewer
 Nuke
