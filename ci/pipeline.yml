@@ -53,7 +53,7 @@ jobs:
         on_failure:
           put: slack-feed
           params:
-            text: ":augen: Updating of extensions failed. :schluchzen:"
+            text: ":eyes: Updating of extensions failed. :sob:"
 
   - name: update-skins
     plan:
@@ -76,7 +76,7 @@ jobs:
         on_failure:
           put: slack-feed
           params:
-            text: ":augen: Updating of skins failed. :schluchzen:"
+            text: ":eyes: Updating of skins failed. :sob:"
 
   - name: update-mediawiki
     plan:
@@ -103,7 +103,7 @@ jobs:
         on_failure:
           put: slack-feed
           params:
-            text: ":augen: Updating of mediawiki failed. :schluchzen:"
+            text: ":eyes: Updating of mediawiki failed. :sob:"
 
   - name: update-composer
     plan:
@@ -122,7 +122,7 @@ jobs:
         on_failure:
           put: slack-feed
           params:
-            text: ":augen: Updating of composer failed. :schluchzen:"
+            text: ":eyes: Updating of composer failed. :sob:"
 
   - name: deploy
     plan:
@@ -155,8 +155,8 @@ jobs:
         on_failure:
           put: slack-feed
           params:
-            text: ":augen: Deployment of new mediawiki version failed. :schluchzen:"
+            text: ":eyes: Deployment of new mediawiki version failed. :sob:"
         on_success:
           put: slack-feed
           params:
-            text: ":tada: Deployment of new mediawiki version finished! :sternaugen:"
+            text: ":tada: Deployment of new mediawiki version finished! :heart_eyes:"
