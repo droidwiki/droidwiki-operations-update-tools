@@ -1,0 +1,161 @@
+resource_types:
+  - name: mediawiki-version-resource
+    type: docker-image
+    source:
+      repository: droidwiki/mediawiki-version-resource
+      tag: latest
+  - name: ssh
+    type: docker-image
+    source:
+      repository: eugenmayer/concourse-ssh-resource
+  - name: slack-notification
+    type: docker-image
+    source:
+      repository: cfcommunity/slack-notification-resource
+      tag: latest
+
+resources:
+  - name: mediawiki-version
+    type: mediawiki-version-resource
+    source:
+      mediawikiUrl: https://de.wikipedia.org
+  - name: staging-server
+    type: ssh
+    source:
+      host: 188.68.49.74
+      user: ((ssh.username))
+      private_key: ((ssh.private_key))
+  - name: slack-feed
+    type: slack-notification
+    source:
+      url: ((slack.webhook_url))
+
+jobs:
+  - name: update-extensions
+    plan:
+      - get: mediawiki-version
+      - put: staging-server
+        params:
+          interpreter: /bin/bash
+          script: |
+            export TERM=dumb
+            set -e
+            set -x
+            cd /data/deployment/staging/extensions/
+            branch="|mediawiki-version|"
+            newVersion=${branch:4}
+
+            ../../bin/update-list.sh ../../bin/extensions.list $newVersion
+          placeholders:
+            - name: "|mediawiki-version|"
+              file: mediawiki-version/git-branch
+        on_failure:
+          put: slack-feed
+          params:
+            text: ":augen: Updating of extensions failed. :schluchzen:"
+
+  - name: update-skins
+    plan:
+      - get: mediawiki-version
+      - put: staging-server
+        params:
+          interpreter: /bin/bash
+          script: |
+            export TERM=dumb
+            set -e
+            set -x
+            cd /data/deployment/staging/skins/
+            branch="|mediawiki-version|"
+            newVersion=${branch:4}
+
+            ../../bin/update-list.sh ../../bin/skins.list $newVersion
+          placeholders:
+            - name: "|mediawiki-version|"
+              file: mediawiki-version/git-branch
+        on_failure:
+          put: slack-feed
+          params:
+            text: ":augen: Updating of skins failed. :schluchzen:"
+
+  - name: update-mediawiki
+    plan:
+      - get: mediawiki-version
+      - put: staging-server
+        params:
+          interpreter: /bin/bash
+          script: |
+            export TERM=dumb
+            set -e
+            set -x
+            cd /data/deployment/staging/main/
+            branch="|mediawiki-version|"
+
+            rm extensions
+            rm skins
+            git fetch
+            git checkout $branch
+            cd ..
+            ./create-links.sh
+          placeholders:
+            - name: "|mediawiki-version|"
+              file: mediawiki-version/git-branch
+        on_failure:
+          put: slack-feed
+          params:
+            text: ":augen: Updating of mediawiki failed. :schluchzen:"
+
+  - name: update-composer
+    plan:
+      - get: mediawiki-version
+        passed: [update-extensions, update-mediawiki, update-skins]
+      - put: staging-server
+        params:
+          interpreter: /bin/bash
+          script: |
+            export TERM=dumb
+            set -e
+            set -x
+            cd /data/deployment/staging/main/
+
+            composer update --no-dev
+        on_failure:
+          put: slack-feed
+          params:
+            text: ":augen: Updating of composer failed. :schluchzen:"
+
+  - name: deploy
+    plan:
+      - get: mediawiki-version
+        passed: [update-composer]
+      - put: staging-server
+        params:
+          interpreter: /bin/bash
+          script: |
+            export TERM=dumb
+            set -e
+
+            echo "((ssh.private_key))" > /tmp/ssh-key
+            chmod 600 /tmp/ssh-key
+            eval `ssh-agent -s`
+            ssh-add /tmp/ssh-key
+
+            cd /data/deployment/deploy/
+
+            ./deploy --updatedb --updatei18n
+        ensure:
+          put: staging-server
+          params:
+            interpreter: /bin/bash
+            script: |
+              export TERM=dumb
+              set -e
+
+              rm -rf /tmp/ssh-key
+        on_failure:
+          put: slack-feed
+          params:
+            text: ":augen: Deployment of new mediawiki version failed. :schluchzen:"
+        on_success:
+          put: slack-feed
+          params:
+            text: ":tada: Deployment of new mediawiki version finished! :sternaugen:"
