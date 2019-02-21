@@ -7,7 +7,7 @@ resource_types:
   - name: ssh
     type: docker-image
     source:
-      repository: eugenmayer/concourse-ssh-resource
+      repository: droidwiki/concourse-ssh-resource
   - name: slack-notification
     type: docker-image
     source:
@@ -25,6 +25,7 @@ resources:
       host: 188.68.49.74
       user: ((ssh.username))
       private_key: ((ssh.private_key))
+      timeout: 1800
   - name: slack-feed
     type: slack-notification
     source:
