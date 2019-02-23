@@ -35,6 +35,7 @@ jobs:
   - name: update-extensions
     plan:
       - get: mediawiki-version
+        trigger: true
       - put: staging-server
         params:
           interpreter: /bin/bash
@@ -58,6 +59,7 @@ jobs:
   - name: update-skins
     plan:
       - get: mediawiki-version
+        trigger: true
       - put: staging-server
         params:
           interpreter: /bin/bash
@@ -81,6 +83,7 @@ jobs:
   - name: update-mediawiki
     plan:
       - get: mediawiki-version
+        trigger: true
       - put: staging-server
         params:
           interpreter: /bin/bash
@@ -107,6 +110,7 @@ jobs:
     plan:
       - get: mediawiki-version
         passed: [update-extensions, update-mediawiki, update-skins]
+        trigger: true
       - put: staging-server
         params:
           interpreter: /bin/bash
