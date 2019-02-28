@@ -99,3 +99,4 @@ done
 git submodule update --init &> /dev/null
 
 coloredEcho "Finished" yellow
+exit 0
