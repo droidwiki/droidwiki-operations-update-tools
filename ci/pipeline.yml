@@ -30,6 +30,10 @@ resources:
     type: slack-notification
     source:
       url: ((slack.webhook_url))
+  - name: mediawiki-config
+    type: git
+    source:
+      uri: https://github.com/droidwiki/operations-mediawiki-config.git
 
 jobs:
   - name: update-extensions
@@ -128,10 +132,49 @@ jobs:
           params:
             text: ":eyes: Updating of composer failed. :sob:"
 
+  - name: update-mediawiki-config
+    plan:
+      - get: mediawiki-version
+        passed: [update-mediawiki]
+      - get: mediawiki-config
+        trigger: true
+      - put: staging-server
+        params:
+          interpreter: /bin/bash
+          script: |
+            export TERM=dumb
+            set -e
+            ref="|mediawiki-config-ref|"
+
+            echo "((ssh.private_key))" > /tmp/ssh-key
+            chmod 600 /tmp/ssh-key
+            eval `ssh-agent -s`
+            ssh-add /tmp/ssh-key
+
+            cd /data/deployment/staging/mw-config/mw-config
+
+            git fetch && git checkout $ref
+          placeholders:
+            - name: "|mediawiki-config-ref|"
+              file: mediawiki-config/.git/ref
+        ensure:
+          put: staging-server
+          params:
+            interpreter: /bin/bash
+            script: |
+              export TERM=dumb
+              set -e
+
+              rm -rf /tmp/ssh-key
+        on_failure:
+          put: slack-feed
+          params:
+            text: ":eyes: Updating of composer failed. :sob:"
+
   - name: deploy
     plan:
       - get: mediawiki-version
-        passed: [update-composer]
+        passed: [update-composer, update-mediawiki-config]
       - put: staging-server
         params:
           interpreter: /bin/bash
