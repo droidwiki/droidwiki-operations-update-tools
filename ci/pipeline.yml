@@ -36,59 +36,12 @@ resources:
       uri: https://github.com/droidwiki/operations-mediawiki-config.git
 
 jobs:
-  - name: update-extensions
-    plan:
-      - get: mediawiki-version
-        trigger: true
-      - put: staging-server
-        params:
-          interpreter: /bin/bash
-          script: |
-            export TERM=dumb
-            set -e
-            set -x
-            cd /data/deployment/staging/extensions/
-            branch="|mediawiki-version|"
-            newVersion=${branch:4}
-
-            ../../bin/update-list.sh ../../bin/extensions.list $newVersion
-          placeholders:
-            - name: "|mediawiki-version|"
-              file: mediawiki-version/git-branch
-        on_failure:
-          put: slack-feed
-          params:
-            text: ":eyes: Updating of extensions failed. :sob:"
-
-  - name: update-skins
-    plan:
-      - get: mediawiki-version
-        trigger: true
-      - put: staging-server
-        params:
-          interpreter: /bin/bash
-          script: |
-            export TERM=dumb
-            set -e
-            set -x
-            cd /data/deployment/staging/skins/
-            branch="|mediawiki-version|"
-            newVersion=${branch:4}
-
-            ../../bin/update-list.sh ../../bin/skins.list $newVersion
-          placeholders:
-            - name: "|mediawiki-version|"
-              file: mediawiki-version/git-branch
-        on_failure:
-          put: slack-feed
-          params:
-            text: ":eyes: Updating of skins failed. :sob:"
-
   - name: update-mediawiki
     plan:
       - get: mediawiki-version
         trigger: true
-      - put: staging-server
+      - put: update mediawiki
+        resource: staging-server
         params:
           interpreter: /bin/bash
           script: |
@@ -109,11 +62,51 @@ jobs:
           put: slack-feed
           params:
             text: ":eyes: Updating of mediawiki failed. :sob:"
+      - put: update extensions
+        resource: staging-server
+        params:
+          interpreter: /bin/bash
+          script: |
+            export TERM=dumb
+            set -e
+            set -x
+            cd /data/deployment/staging/extensions/
+            branch="|mediawiki-version|"
+            newVersion=${branch:4}
+
+            ../../bin/update-list.sh ../../bin/extensions.list $newVersion
+          placeholders:
+            - name: "|mediawiki-version|"
+              file: mediawiki-version/git-branch
+        on_failure:
+          put: slack-feed
+          params:
+            text: ":eyes: Updating of extensions failed. :sob:"
+      - put: update skins
+        resource: staging-server
+        params:
+          interpreter: /bin/bash
+          script: |
+            export TERM=dumb
+            set -e
+            set -x
+            cd /data/deployment/staging/skins/
+            branch="|mediawiki-version|"
+            newVersion=${branch:4}
+
+            ../../bin/update-list.sh ../../bin/skins.list $newVersion
+          placeholders:
+            - name: "|mediawiki-version|"
+              file: mediawiki-version/git-branch
+        on_failure:
+          put: slack-feed
+          params:
+            text: ":eyes: Updating of skins failed. :sob:"
 
   - name: update-composer
     plan:
       - get: mediawiki-version
-        passed: [update-extensions, update-mediawiki, update-skins]
+        passed: [update-mediawiki]
         trigger: true
       - put: staging-server
         params:
@@ -134,8 +127,6 @@ jobs:
 
   - name: update-mediawiki-config
     plan:
-      - get: mediawiki-version
-        passed: [update-mediawiki]
       - get: mediawiki-config
         trigger: true
       - put: staging-server
@@ -174,7 +165,9 @@ jobs:
   - name: deploy
     plan:
       - get: mediawiki-version
-        passed: [update-composer, update-mediawiki-config]
+        passed: [update-composer]
+      - get: mediawiki-config
+        passed: [update-mediawiki-config]
       - put: staging-server
         params:
           interpreter: /bin/bash
