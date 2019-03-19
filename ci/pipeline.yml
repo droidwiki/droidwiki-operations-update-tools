@@ -51,8 +51,8 @@ jobs:
             cd /data/deployment/staging/main/
             branch="|mediawiki-version|"
 
-            rm -f extensions
-            rm -f skins
+            rm -rf extensions
+            rm -rf skins
             git fetch
             git checkout $branch
           placeholders:
