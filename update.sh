@@ -85,7 +85,7 @@ fi
 git rev-parse --verify ${checkoutBranch} &> /dev/null
 if [ $? == 0 ]; then
   coloredEcho " | Deleting already existing local branch ${checkoutBranch}" yellow
-  git checkout master &> /dev/null
+  git checkout upstream/${checkoutBranch} &> /dev/null
   git branch -D ${checkoutBranch} > /dev/null
 fi
 
