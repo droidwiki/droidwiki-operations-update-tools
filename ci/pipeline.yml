@@ -34,12 +34,58 @@ resources:
     type: git
     source:
       uri: https://github.com/droidwiki/operations-mediawiki-config.git
+  - name: update-tools
+    type: git
+    source:
+      uri: https://github.com/droidwiki/operations-update-tools.git
 
 jobs:
+  - name: update-tools
+    serial: true
+    plan:
+      - get: update-tools
+        trigger: true
+      - put: staging-server
+        params:
+          interpreter: /bin/bash
+          script: |
+            export TERM=dumb
+            set -e
+            ref="|update-tools-ref|"
+
+            echo "((ssh.private_key))" > /tmp/ssh-key
+            chmod 600 /tmp/ssh-key
+            eval `ssh-agent -s`
+            ssh-add /tmp/ssh-key
+
+            cd /data/deployment/bin/
+
+            git fetch && git checkout $ref
+          placeholders:
+            - name: "|update-tools-ref|"
+              file: update-tools/.git/ref
+        ensure:
+          put: staging-server
+          params:
+            interpreter: /bin/bash
+            script: |
+              export TERM=dumb
+              set -e
+
+              rm -rf /tmp/ssh-key
+        on_failure:
+          put: slack-feed
+          params:
+            text: ":eyes: Updating of update-tools failed. :sob:"
+    
   - name: update-mediawiki
+    serial: true
     plan:
       - get: mediawiki-version
         trigger: true
+      - get: update-tools
+        trigger: true
+        passed: [update-tools]
       - put: update mediawiki
         resource: staging-server
         params:
@@ -104,10 +150,14 @@ jobs:
             text: ":eyes: Updating of skins failed. :sob:"
 
   - name: update-composer
+    serial: true
     plan:
       - get: mediawiki-version
         passed: [update-mediawiki]
         trigger: true
+      - get: update-tools
+        trigger: true
+        passed: [update-mediawiki]
       - put: staging-server
         params:
           interpreter: /bin/bash
@@ -126,6 +176,7 @@ jobs:
             text: ":eyes: Updating of composer failed. :sob:"
 
   - name: update-mediawiki-config
+    serial: true
     plan:
       - get: mediawiki-config
         trigger: true
@@ -165,11 +216,14 @@ jobs:
             text: ":eyes: Updating of composer failed. :sob:"
 
   - name: deploy
+    serial: true
     plan:
       - get: mediawiki-version
         passed: [update-composer]
       - get: mediawiki-config
         passed: [update-mediawiki-config]
+      - get: update-tools
+        passed: [update-composer]
       - put: staging-server
         params:
           interpreter: /bin/bash
