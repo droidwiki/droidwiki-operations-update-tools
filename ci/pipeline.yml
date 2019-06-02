@@ -145,6 +145,8 @@ jobs:
             cd /data/deployment/staging/mw-config/mw-config
 
             git fetch && git checkout $ref
+
+            composer update --ansi --no-progress --prefer-dist --profile -v
           placeholders:
             - name: "|mediawiki-config-ref|"
               file: mediawiki-config/.git/ref
