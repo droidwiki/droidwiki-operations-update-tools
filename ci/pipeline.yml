@@ -101,6 +101,8 @@ jobs:
             rm -rf skins
             git fetch
             git checkout $branch
+            
+            cd .. && ./create-links.sh
           placeholders:
             - name: "|mediawiki-version|"
               file: mediawiki-version/git-branch
@@ -166,7 +168,6 @@ jobs:
             set -e
             set -x
             cd /data/deployment/staging
-            ./create-links.sh
 
             cd main
             composer update --no-dev
