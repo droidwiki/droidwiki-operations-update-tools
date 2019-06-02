@@ -4,7 +4,6 @@ while read line
 do
   name=$line
   IFS=';' read -ra UPDATE_INFO <<< "$line"
-  echo $UPDATE_INFO
   if (( "${#UPDATE_INFO[@]}" >= 2 )); then
 	name=${UPDATE_INFO[0]}
 	version=${UPDATE_INFO[1]}
