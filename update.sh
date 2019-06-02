@@ -3,13 +3,13 @@
 # Options:
 #  -p Project name of the extension to update
 #  -v Version To which version branch this extension should be upgraded (will be used with -w to form -w/-v)
-#  -u Path branch path to use, default ssh://florianschmidtwelzow@gerrit.wikimedia.org:29418/mediawiki/extensions/
-#  -w Version-prefix prefix used to build version branch to fecth from (default: wmf)
+#  -u Path branch path to use, default https://gerrit.wikimedia.org/r/mediawiki/extensions/
+#  -w Version-prefix prefix used to build version branch to fecth from (default: wmf/)
 #  -s Submodules should submodules updated, too?
 #  -d Debug Output all the spam!
 
 branchPath="https://gerrit.wikimedia.org/r/mediawiki/extensions/"
-wmf="wmf"
+wmf="wmf/"
 scriptPath="$( cd "$(dirname "$0")" ; pwd -P )"
 
 while getopts ":u:v:p:w:skd" opt; do
@@ -52,7 +52,9 @@ function coloredEcho(){
   tput sgr0;
 }
 
-coloredEcho "Starting update of $project to $wmf/$newBranch using $branchPath." yellow
+checkoutBranch=${wmf}${newBranch}
+
+coloredEcho "Starting update of $project to ${checkoutBranch} using $branchPath." yellow
 
 shopt -s nullglob
 IFS='%'
@@ -75,19 +77,19 @@ fi
 
 coloredEcho " | Fetch upstream..." green
 git fetch upstream &> /dev/null
-if [ `git ls-remote upstream $wmf/$newBranch | wc -l` != 1 ]; then
-  coloredEcho "The target branch $wmf/$newBranch does not exist in the remote..." red
+if [ `git ls-remote upstream ${checkoutBranch} | wc -l` != 1 ]; then
+  coloredEcho "The target branch ${checkoutBranch} does not exist in the remote..." red
   exit;
 fi
 
-git rev-parse --verify $wmf/$newBranch &> /dev/null
+git rev-parse --verify ${checkoutBranch} &> /dev/null
 if [ $? == 0 ]; then
-  coloredEcho " | Deleting already existing local branch $wmf/$newBranch" yellow
+  coloredEcho " | Deleting already existing local branch ${checkoutBranch}" yellow
   git checkout master &> /dev/null
-  git branch -D $wmf/$newBranch > /dev/null
+  git branch -D ${checkoutBranch} > /dev/null
 fi
 
-git checkout -b $wmf/$newBranch upstream/$wmf/$newBranch &> /dev/null
+git checkout -b ${checkoutBranch} upstream/${checkoutBranch} &> /dev/null
 git pull &> /dev/null
 
 coloredEcho " | Applying patches, if available..." green
