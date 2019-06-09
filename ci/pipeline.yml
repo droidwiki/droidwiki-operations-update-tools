@@ -181,6 +181,25 @@ jobs:
     plan:
       - get: mediawiki-config
         trigger: true
+      - task: test config
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: composer
+              tag: latest
+          inputs:
+            - name: mediawiki-config
+          run:
+            path: bash
+            args:
+              - -ec
+              - |
+                cd mediawiki-config
+                composer update --ansi --no-progress --prefer-dist --profile -v
+
+                composer test
       - put: staging-server
         params:
           interpreter: /bin/bash
@@ -223,8 +242,7 @@ jobs:
         passed: [update-composer]
       - get: mediawiki-config
         passed: [update-mediawiki-config]
-      - get: update-tools
-        passed: [update-composer]
+        trigger: true
       - put: staging-server
         params:
           interpreter: /bin/bash
