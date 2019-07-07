@@ -167,9 +167,8 @@ jobs:
             export TERM=dumb
             set -e
             set -x
-            cd /data/deployment/staging
+            cd /data/deployment/staging/main
 
-            cd main
             composer update --no-dev
         on_failure:
           put: slack-feed
@@ -217,7 +216,7 @@ jobs:
 
             git fetch && git checkout $ref
 
-            composer update --ansi --no-progress --prefer-dist --profile -v
+            composer update --ansi --no-progress --prefer-dist --profile -v --no-dev
           placeholders:
             - name: "|mediawiki-config-ref|"
               file: mediawiki-config/.git/ref
