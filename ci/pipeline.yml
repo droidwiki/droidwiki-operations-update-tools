@@ -38,6 +38,11 @@ resources:
     type: git
     source:
       uri: https://github.com/droidwiki/operations-update-tools.git
+  - name: daily
+    type: time
+    source:
+      start: 12:00 AM
+      stop: 1:00 AM
 
 jobs:
   - name: update-tools
@@ -274,3 +279,33 @@ jobs:
           put: slack-feed
           params:
             text: ":tada: Deployment of new mediawiki version finished! :heart_eyes:"
+
+  - name: update-sitemaps
+    serial: true
+    plan:
+      - get: daily
+        trigger: true
+      - put: staging-server
+        params:
+          interpreter: /bin/bash
+          script: |
+            export TERM=dumb
+            set -e
+
+            echo "((ssh.private_key))" > /tmp/ssh-key
+            chmod 600 /tmp/ssh-key
+            eval `ssh-agent -s`
+            ssh-add /tmp/ssh-key
+
+            cd /data/deployment/deploy/
+
+            ./deploy --skipupdatewiki
+        ensure:
+          put: staging-server
+          params:
+            interpreter: /bin/bash
+            script: |
+              export TERM=dumb
+              set -e
+
+              rm -rf /tmp/ssh-key
