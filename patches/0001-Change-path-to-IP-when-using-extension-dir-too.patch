@@ -1,7 +1,7 @@
-From f1d07dc9d261ac956b1644b8499ad9496beac203 Mon Sep 17 00:00:00 2001
+From 2f639b422ac2a29bec14926ea68c03cb2b225732 Mon Sep 17 00:00:00 2001
 From: Florian Schmidt <florian.schmidt.stargatewissen@gmail.com>
 Date: Tue, 19 Dec 2017 17:22:16 +0100
-Subject: [PATCH] Change path to $IP when using extension-dir too
+Subject: [PATCH] [mergeMessageFileList] Change path to $IP when using extension-dir too
 
 Imagine a setup of mediawiki is deployed from another host, which has
 a different "basepath" to MediaWiki (e.g. something prepended with deployment
@@ -25,59 +25,54 @@ paths that will be replaced by $IP after mergeMessageFileList finished.
 
 Change-Id: Ic26dffb58366b608add01496287bce32258bdafe
 ---
- maintenance/mergeMessageFileList.php | 18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
 
 diff --git a/maintenance/mergeMessageFileList.php b/maintenance/mergeMessageFileList.php
-index 51c41db325..4a7b1a4b21 100644
+index 48a6666..fab97a5 100644
 --- a/maintenance/mergeMessageFileList.php
 +++ b/maintenance/mergeMessageFileList.php
-@@ -28,6 +28,9 @@ define( 'MW_NO_EXTENSION_MESSAGES', 1 );
+@@ -28,6 +28,9 @@
  require_once __DIR__ . '/Maintenance.php';
  $maintClass = MergeMessageFileList::class;
  $mmfl = false;
 +$toReplaceIPDirs = [
-+       dirname( __DIR__ ),
++	dirname( __DIR__ ),
 +];
-
+ 
  /**
   * Maintenance script that merges $wgExtensionMessagesFiles from various
-@@ -53,7 +56,7 @@ class MergeMessageFileList extends Maintenance {
-
-        public function execute() {
-                // phpcs:ignore MediaWiki.NamingConventions.ValidGlobalName.wgPrefix
--               global $mmfl;
-+               global $mmfl, $toReplaceIPDirs;
-                global $wgExtensionEntryPointListFiles;
-
-                if ( !count( $wgExtensionEntryPointListFiles )
-@@ -79,6 +82,9 @@ class MergeMessageFileList extends Maintenance {
-                        $extdirs = explode( ':', $extdir );
-                        $entries = [];
-                        foreach ( $extdirs as $extdir ) {
-+                               // strip extensions/ or skins/ from the directory name
-+                               $toReplaceIPDirs[] = dirname( $extdir );
+@@ -53,7 +56,7 @@
+ 
+ 	public function execute() {
+ 		// phpcs:ignore MediaWiki.NamingConventions.ValidGlobalName.wgPrefix
+-		global $mmfl;
++		global $mmfl, $toReplaceIPDirs;
+ 		global $wgExtensionEntryPointListFiles;
+ 
+ 		if ( !count( $wgExtensionEntryPointListFiles )
+@@ -78,6 +81,9 @@
+ 			# Allow multiple directories to be passed with ":" as delimiter
+ 			$extdirs = explode( ':', $extdir );
+ 			foreach ( $extdirs as $extdir ) {
++				// strip extensions/ or skins/ from the directory name
++				$toReplaceIPDirs[] = dirname( $extdir );
 +
-                                $entries = scandir( $extdir );
-                                foreach ( $entries as $extname ) {
-                                        if ( $extname == '.' || $extname == '..' || !is_dir( "$extdir/$extname" ) ) {
-@@ -191,13 +197,9 @@ $s =
-        '$wgExtensionMessagesFiles = ' . var_export( $wgExtensionMessagesFiles, true ) . ";\n\n" .
-        '$wgMessagesDirs = ' . var_export( $wgMessagesDirs, true ) . ";\n\n";
-
+ 				$entries = scandir( $extdir );
+ 				foreach ( $entries as $extname ) {
+ 					if ( $extname == '.' || $extname == '..' || !is_dir( "$extdir/$extname" ) ) {
+@@ -191,13 +197,9 @@
+ 	'$wgExtensionMessagesFiles = ' . var_export( $wgExtensionMessagesFiles, true ) . ";\n\n" .
+ 	'$wgMessagesDirs = ' . var_export( $wgMessagesDirs, true ) . ";\n\n";
+ 
 -$dirs = [
--       $IP,
--       dirname( __DIR__ ),
--       realpath( $IP )
+-	$IP,
+-	dirname( __DIR__ ),
+-	realpath( $IP )
 -];
 -
 -foreach ( $dirs as $dir ) {
 +$toReplaceIPDirs[] = $IP;
 +$toReplaceIPDirs[] = realpath( $IP );
 +foreach ( $toReplaceIPDirs as $dir ) {
-        $s = preg_replace( "/'" . preg_quote( $dir, '/' ) . "([^']*)'/", '"$IP\1"', $s );
+ 	$s = preg_replace( "/'" . preg_quote( $dir, '/' ) . "([^']*)'/", '"$IP\1"', $s );
  }
-
---
-2.15.1
-
+ 
