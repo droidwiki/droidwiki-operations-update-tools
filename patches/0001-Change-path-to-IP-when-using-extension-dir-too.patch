@@ -1,4 +1,4 @@
-From 2f639b422ac2a29bec14926ea68c03cb2b225732 Mon Sep 17 00:00:00 2001
+From 827ca0e97936adc8a58fe056d663156671f713c5 Mon Sep 17 00:00:00 2001
 From: Florian Schmidt <florian.schmidt.stargatewissen@gmail.com>
 Date: Tue, 19 Dec 2017 17:22:16 +0100
 Subject: [PATCH] [mergeMessageFileList] Change path to $IP when using extension-dir too
@@ -12,7 +12,7 @@ all happens on the deployment host (with the prepended deployment/ path).
 
 However the extensions could be symlinked on the deployment host, only, and
 are not located in ../extensions relatively from the maintenance script directory,
-which means, that anything is working when using the extensions-dir parameter to
+which means, that everything is working when using the extensions-dir parameter to
 the mergeMessageFileList.php maintenance script. But the output differs from the
 expected one. Instead of having paths relative to $IP, the paths in these files
 are absolute (e.g. /data/deployment/extensions/ExtName, instead of $IP/ExtName).
