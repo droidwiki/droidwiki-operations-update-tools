@@ -106,6 +106,7 @@ jobs:
             rm -rf skins
             git fetch
             git checkout $branch
+            git am ../../bin/patches/0001-Change-path-to-IP-when-using-extension-dir-too.patch
             
             cd .. && ./create-links.sh
           placeholders:
