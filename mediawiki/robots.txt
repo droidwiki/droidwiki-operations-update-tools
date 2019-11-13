@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /DroidWiki:Impressum
+Disallow: /DroidWiki:TOS
+Allow: /
+Sitemap: https://www.droidwiki.org/sitemap/sitemap-index-droidwikiwiki.xml
