@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #
 # Clones a list of repositories into the current directory. Following parameters are allowed:
