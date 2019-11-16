@@ -35,7 +35,7 @@ def cache_git_info():
         json.dump(info, f)
 
     # Create cache for each extension and skin
-    for dirname in ['extensions', 'skins', 'mw-config']:
+    for dirname in ['extensions', 'skins', '../mw-config']:
         dir = os.path.join(branch_dir, dirname)
         for subdir in iterate_subdirectories(dir):
             try:
@@ -135,3 +135,6 @@ def git_info_filename(directory, install_path, cache_path):
     if path.startswith(install_path):
         path = path[len(install_path):]
     return os.path.join(cache_path, 'info%s.json' % path.replace('/', '-'))
+
+
+cache_git_info()
