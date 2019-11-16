@@ -1,0 +1,150 @@
+resource_types:
+  - name: mediawiki-version-resource
+    type: docker-image
+    source:
+      repository: droidwiki/mediawiki-version-resource
+      tag: latest
+
+resources:
+  - name: mediawiki-version
+    type: mediawiki-version-resource
+    source:
+      mediawikiUrl: https://de.wikipedia.org
+  - name: update-tools
+    type: git
+    source:
+      uri: https://github.com/droidwiki/operations-update-tools.git
+  - name: mediawiki-config
+    type: git
+    source:
+      uri: https://github.com/droidwiki/operations-mediawiki-config.git
+
+jobs:
+  - name: mediawiki-release
+    plan:
+      - in_parallel:
+        - get: mediawiki-version
+        - get: update-tools
+        - get: mediawiki-config
+        - task: retrieve private settings
+          config:
+            platform: linux
+            image_resource:
+              type: docker-image
+              source:
+                repository: lgatica/openssh-client
+                tag: latest
+            outputs:
+              - name: private-settings
+            run:
+              path: sh
+              args:
+                - -ec
+                - |
+                  echo "((deployment.private_key))" > /tmp/ssh-key
+                  chmod 600 /tmp/ssh-key
+                  eval `ssh-agent -s`
+                  ssh-add /tmp/ssh-key
+              
+                  scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ((deployment.username))@188.68.49.74:/data/deployment/staging/mw-config/private/PrivateSettings.php private-settings/PrivateSettings.php
+      - task: clone mediawiki components
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: alpine/git
+              tag: latest
+          inputs:
+            - name: mediawiki-version
+            - name: update-tools
+          outputs:
+            - name: mediawiki
+          run:
+            path: bash
+            args:
+              - -ec
+              - |
+                BUILD_ROOT=$PWD
+                
+                export GIT_BRANCH=`cat mediawiki-version/git-branch`
+                echo "Cloning $GIT_BRANCH"
+                git clone -q --depth 1 https://github.com/wikimedia/mediawiki.git --branch $GIT_BRANCH --single-branch mediawiki/
+                
+                rm -rf $BUILD_ROOT/mediawiki/extensions/ && mkdir $BUILD_ROOT/mediawiki/extensions/
+                cd $BUILD_ROOT/mediawiki/extensions/
+                $BUILD_ROOT/update-tools/clone-list.sh "$BUILD_ROOT/update-tools/extensions.list" "https://gerrit.wikimedia.org/r/mediawiki/extensions/"
+                
+                rm -rf $BUILD_ROOT/mediawiki/skins/ && mkdir $BUILD_ROOT/mediawiki/skins/
+                cd $BUILD_ROOT/mediawiki/skins/
+                $BUILD_ROOT/update-tools/clone-list.sh "$BUILD_ROOT/update-tools/skins.list" "https://gerrit.wikimedia.org/r/mediawiki/skins/"
+      - task: build artifact
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: droidwiki/php-build-image
+              tag: latest
+          inputs:
+            - name: mediawiki
+              path: main
+            - name: mediawiki-config
+              path: mw-config/mw-config
+            - name: update-tools
+            - name: private-settings
+              path: mw-config/private
+          outputs:
+            - name: artifact
+          run:
+            path: bash
+            args:
+              - -exc
+              - |
+                BUILD_ROOT=$PWD
+                
+                cd $BUILD_ROOT/mw-config/mw-config
+                composer update --no-dev --ansi --no-progress
+                
+                cd $BUILD_ROOT/main
+                cp $BUILD_ROOT/update-tools/mediawiki/* ./
+                
+                composer update --no-dev --ansi --no-progress --ignore-platform-reqs
+
+                php $BUILD_ROOT/mw-config/mw-config/multiversion/MWScript.php maintenance/mergeMessageFileList.php --wiki=droidwikiwiki --extensions-dir $BUILD_ROOT/main/extensions --output $BUILD_ROOT/mw-config/mw-config/ExtensionMessages.php
+                cp $BUILD_ROOT/mw-config/mw-config/ExtensionMessages.php $BUILD_ROOT/main/ExtensionMessages.php
+                mkdir -p $BUILD_ROOT/main/cache/l10n/
+                php $BUILD_ROOT/mw-config/mw-config/multiversion/MWScript.php maintenance/rebuildLocalisationCache.php --wiki=droidwikiwiki --outdir=$BUILD_ROOT/main/cache/l10n/ --threads=2
+                echo '<?php require_once "$IP/../mw-config/mw-config/CommonSettings.php";' > $BUILD_ROOT/main/LoclSettings.php
+
+                ln -s ./ w
+                ln -s ../mw-config/mw-config/docroot/static/ static
+                rm -rf images
+                ln -s /data/shareddata/mediawiki/images/ images
+                
+                cd $BUILD_ROOT/main
+                tar zcf $BUILD_ROOT/artifact/mediawiki .
+      - task: publish version
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: lgatica/openssh-client
+              tag: latest
+          inputs:
+            - name: artifact
+            - name: mediawiki-version
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                echo "((deployment.private_key))" > /tmp/ssh-key
+                chmod 600 /tmp/ssh-key
+                eval `ssh-agent -s`
+                ssh-add /tmp/ssh-key
+                
+                MW_VERSION=`cat mediawiki-version/git-branch | sed 's:.*/::'`
+                
+                scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null artifact/mediawiki ((deployment.username))@188.68.49.74:/data/artifacts/mediawiki_$MW_VERSION
