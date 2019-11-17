@@ -28,16 +28,15 @@ def cache_git_info():
     if not os.path.isdir(cache_dir):
         os.mkdir(cache_dir)
 
-    # Create cache for branch
-    info = git_info(branch_dir)
-    cache_file = git_info_filename(branch_dir, branch_dir, cache_dir)
-    with open(cache_file, 'w') as f:
-        json.dump(info, f)
+    if os.path.exists(os.path.join(branch_dir, '.git')):
+        core_git_info(branch_dir, cache_dir)
 
     # Create cache for each extension and skin
     for dirname in ['extensions', 'skins', '../mw-config']:
-        dir = os.path.join(branch_dir, dirname)
-        for subdir in iterate_subdirectories(dir):
+        directory = os.path.join(branch_dir, dirname)
+        if not os.path.isdir(directory):
+            continue
+        for subdir in iterate_subdirectories(directory):
             try:
                 info = git_info(subdir)
             except (IOError, subprocess.CalledProcessError) as e:
@@ -47,6 +46,14 @@ def cache_git_info():
                     subdir, branch_dir, cache_dir).replace("deployment-staging", "mediawiki")
                 with open(cache_file, 'w') as f:
                     json.dump(info, f)
+
+
+def core_git_info(branch_dir, cache_dir):
+    # Create cache for branch
+    info = git_info(branch_dir)
+    cache_file = git_info_filename(branch_dir, branch_dir, cache_dir)
+    with open(cache_file, 'w') as f:
+        json.dump(info, f)
 
 
 def get_disclosable_head(repo_directory):
