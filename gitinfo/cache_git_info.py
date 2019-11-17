@@ -97,7 +97,7 @@ def git_info(directory):
     if head.startswith('ref: '):
         head = head[5:]
 
-    head_sha1 = get_disclosable_head(directory)
+    head_sha1 = get_disclosable_head(directory).decode("utf-8")
     print(head_sha1)
     commit_date = subprocess.check_output(
         ('/usr/bin/git', 'show', '-s', '--format=%ct', head_sha1),
