@@ -97,8 +97,7 @@ def git_info(directory):
     if head.startswith('ref: '):
         head = head[5:]
 
-    head_sha1 = get_disclosable_head(directory).decode("utf-8")
-    print(head_sha1)
+    head_sha1 = get_disclosable_head(directory)
     commit_date = subprocess.check_output(
         ('/usr/bin/git', 'show', '-s', '--format=%ct', head_sha1),
         cwd=git_dir).strip()
@@ -116,10 +115,10 @@ def git_info(directory):
     return {
         '@directory': directory,
         'head': head,
-        'headSHA1': head_sha1,
-        'headCommitDate': commit_date,
+        'headSHA1': head_sha1.decode("utf-8"),
+        'headCommitDate': commit_date.decode("utf-8"),
         'branch': branch,
-        'remoteURL': remote_url,
+        'remoteURL': remote_url.decode("utf-8"),
     }
 
 
