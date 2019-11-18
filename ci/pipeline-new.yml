@@ -94,7 +94,7 @@ deploy_mediawiki: &deploy_mediawiki
         - |
           apk add -q --no-progress rsync openssh-client
 
-          echo "((ssh.private_key))" > /tmp/ssh-key
+          echo "((deployment.private_key))" > /tmp/ssh-key
           chmod 600 /tmp/ssh-key
           eval `ssh-agent -s`
           ssh-add /tmp/ssh-key
@@ -102,7 +102,7 @@ deploy_mediawiki: &deploy_mediawiki
           /usr/bin/rsync \
            -e "ssh -o StrictHostKeyChecking=no" \
            --rsync-path="sudo -u www-data -g www-data rsync" \
-           deploy/main/ ((ssh.username))@$HOST:/data/mediawiki/main \
+           deploy/main/ ((deployment.username))@$HOST:/data/mediawiki/main \
            --exclude=**/main/sitemap \
            --exclude=/services \
            --exclude=**/.git \
@@ -137,7 +137,7 @@ deploy_config: &deploy_config
         - |
           apk add -q --no-progress rsync openssh-client
 
-          echo "((ssh.private_key))" > /tmp/ssh-key
+          echo "((deployment.private_key))" > /tmp/ssh-key
           chmod 600 /tmp/ssh-key
           eval `ssh-agent -s`
           ssh-add /tmp/ssh-key
@@ -145,7 +145,7 @@ deploy_config: &deploy_config
           /usr/bin/rsync \
            -e "ssh -o StrictHostKeyChecking=no" \
            --rsync-path="sudo -u www-data -g www-data rsync" \
-           deploy/mw-config/ ((ssh.username))@$HOST:/data/mediawiki/mw-config \
+           deploy/mw-config/ ((deployment.username))@$HOST:/data/mediawiki/mw-config \
            --exclude=**/.git \
            --no-perms \
            --archive \
@@ -159,11 +159,33 @@ deploy_config: &deploy_config
           /usr/bin/rsync \
            -e "ssh -o StrictHostKeyChecking=no" \
            --rsync-path="sudo -u www-data -g www-data rsync" \
-           deploy/gitinfo/info-*mw-config*.json ((ssh.username))@$HOST:/data/mediawiki/main/cache/gitinfo/ \
+           deploy/gitinfo/info-*mw-config*.json ((deployment.username))@$HOST:/data/mediawiki/main/cache/gitinfo/ \
            --no-perms \
            --quiet \
            --compress \
            --delay-updates
+
+run_maintenance: &run_maintenance
+  config:
+    platform: linux
+    image_resource:
+      type: docker-image
+      source:
+        repository: lgatica/openssh-client
+        tag: latest
+    run:
+      path: sh
+      args:
+        - -ec
+        - |
+          echo "((deployment.private_key))" > /tmp/ssh-key
+          chmod 600 /tmp/ssh-key
+          eval `ssh-agent -s`
+          ssh-add /tmp/ssh-key
+
+          ssh -o StrictHostKeyChecking=no -n \
+           ((deployment.username))@((hosts.donut)) \
+           "sudo -u www-data php /data/mediawiki/mw-config/mw-config/multiversion/MWScript.php $SCRIPT_AND_ARGS"
 
 resource_types:
   - name: mediawiki-version-resource
@@ -185,6 +207,10 @@ resources:
     type: git
     source:
       uri: https://github.com/droidwiki/operations-mediawiki-config.git
+  - name: hourly
+    type: time
+    source:
+      interval: 1h
 
 jobs:
   - name: mediawiki-release
@@ -394,6 +420,9 @@ jobs:
             - test config
           trigger: true
         - get: update-tools
+        - get: mediawiki-version
+          passed:
+            - mediawiki-release
       - in_parallel:
         - <<: *retrieve_private_settings
         - <<: *retrieve_artifact
@@ -451,3 +480,51 @@ jobs:
           params:
             HOST: ((hosts.donut))
           <<: *deploy_config
+
+  - name: update-sitemaps
+    serial: true
+    plan:
+      - get: hourly
+        trigger: true
+      - get: mediawiki-version
+        passed:
+          - deploy mediawiki
+        trigger: true
+      - in_parallel:
+        - task: update droidwikiwiki
+          params:
+            SCRIPT_AND_ARGS: "generateSitemap.php --wiki=droidwikiwiki --fspath /data/mediawiki/main/sitemap/ --urlpath /sitemap/"
+          <<: *run_maintenance
+        - task: update datawiki
+          params:
+            SCRIPT_AND_ARGS: "generateSitemap.php --wiki=datawiki --fspath /data/mediawiki/main/sitemap/ --urlpath /sitemap/"
+          <<: *run_maintenance
+        - task: update endroidwikiwiki
+          params:
+            SCRIPT_AND_ARGS: "generateSitemap.php --wiki=endroidwikiwiki --fspath /data/mediawiki/main/sitemap/ --urlpath /sitemap/"
+          <<: *run_maintenance
+
+  - name: update-database
+    serial: true
+    plan:
+      - get: mediawiki-version
+        passed:
+          - deploy mediawiki
+        trigger: true
+      - in_parallel:
+        - task: update droidwikiwiki
+          params:
+            SCRIPT_AND_ARGS: "update.php --wiki=droidwikiwiki --quick"
+          <<: *run_maintenance
+        - task: update datawiki
+          params:
+            SCRIPT_AND_ARGS: "update.php --wiki=datawiki --quick"
+          <<: *run_maintenance
+        - task: update endroidwikiwiki
+          params:
+            SCRIPT_AND_ARGS: "update.php --wiki=endroidwikiwiki --quick"
+          <<: *run_maintenance
+        - task: update datawiki
+          params:
+            SCRIPT_AND_ARGS: "update.php --wiki=datawiki --quick"
+          <<: *run_maintenance
