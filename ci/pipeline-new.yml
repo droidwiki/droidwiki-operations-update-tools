@@ -1,3 +1,170 @@
+retrieve_private_settings: &retrieve_private_settings
+  task: retrieve private settings
+  config:
+    platform: linux
+    image_resource:
+      type: docker-image
+      source:
+        repository: lgatica/openssh-client
+        tag: latest
+    outputs:
+      - name: private-settings
+    run:
+      path: sh
+      args:
+        - -ec
+        - |
+          echo "((deployment.private_key))" > /tmp/ssh-key
+          chmod 600 /tmp/ssh-key
+          eval `ssh-agent -s`
+          ssh-add /tmp/ssh-key
+
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ((deployment.username))@((hosts.eclair)):/data/deployment/staging/mw-config/private/PrivateSettings.php private-settings/PrivateSettings.php
+
+retriee_artifact: &retrieve_artifact
+  task: retrieve artifact
+  config:
+    platform: linux
+    image_resource:
+      type: docker-image
+      source:
+        repository: lgatica/openssh-client
+        tag: latest
+    inputs:
+      - name: mediawiki-version
+    outputs:
+      - name: artifact
+    run:
+      path: sh
+      args:
+        - -ec
+        - |
+          echo "((deployment.private_key))" > /tmp/ssh-key
+          chmod 600 /tmp/ssh-key
+          eval `ssh-agent -s`
+          ssh-add /tmp/ssh-key
+
+          MW_VERSION=`cat mediawiki-version/git-branch | sed 's:.*/::'`
+
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ((deployment.username))@((hosts.eclair)):/data/artifacts/mediawiki_$MW_VERSION artifact/mediawiki
+
+build_config: &build_config
+  task: build config
+  config:
+    platform: linux
+    image_resource:
+      type: docker-image
+      source:
+        repository: composer
+        tag: latest
+    inputs:
+      - name: mediawiki-config
+      - name: mediawiki
+    outputs:
+      - name: config
+    run:
+      path: sh
+      args:
+        - -ec
+        - |
+          cd mediawiki-config
+          composer update --no-dev
+
+          cd ..
+          cp -R mediawiki-config/. config/
+          cp mediawiki/ExtensionMessages.php config/ExtensionMessages.php
+
+deploy_mediawiki: &deploy_mediawiki
+  config:
+    platform: linux
+    image_resource:
+      type: docker-image
+      source:
+        repository: alpine
+        tag: latest
+    inputs:
+      - name: mediawiki
+        path: deploy/main
+      - name: gitinfo
+        path: deploy/main/cache/gitinfo/
+    run:
+      path: sh
+      args:
+        - -ec
+        - |
+          apk add -q --no-progress rsync openssh-client
+
+          echo "((ssh.private_key))" > /tmp/ssh-key
+          chmod 600 /tmp/ssh-key
+          eval `ssh-agent -s`
+          ssh-add /tmp/ssh-key
+
+          /usr/bin/rsync \
+           -e "ssh -o StrictHostKeyChecking=no" \
+           --rsync-path="sudo -u www-data -g www-data rsync" \
+           deploy/main/ ((ssh.username))@$HOST:/data/mediawiki/main \
+           --exclude=**/main/sitemap \
+           --exclude=/services \
+           --exclude=**/.git \
+           --no-perms \
+           --archive \
+           --delete-delay \
+           --delay-updates \
+           --compress \
+           --partial \
+           --quiet \
+           --delete
+
+deploy_config: &deploy_config
+  config:
+    platform: linux
+    image_resource:
+      type: docker-image
+      source:
+        repository: alpine
+        tag: latest
+    inputs:
+      - name: config
+        path: deploy/mw-config/mw-config
+      - name: private-settings
+        path: deploy/mw-config/private
+      - name: gitinfo
+        path: deploy/gitinfo
+    run:
+      path: sh
+      args:
+        - -ec
+        - |
+          apk add -q --no-progress rsync openssh-client
+
+          echo "((ssh.private_key))" > /tmp/ssh-key
+          chmod 600 /tmp/ssh-key
+          eval `ssh-agent -s`
+          ssh-add /tmp/ssh-key
+
+          /usr/bin/rsync \
+           -e "ssh -o StrictHostKeyChecking=no" \
+           --rsync-path="sudo -u www-data -g www-data rsync" \
+           deploy/mw-config/ ((ssh.username))@$HOST:/data/mediawiki/mw-config \
+           --exclude=**/.git \
+           --no-perms \
+           --archive \
+           --delete-delay \
+           --delay-updates \
+           --compress \
+           --partial \
+           --quiet \
+           --delete
+
+          /usr/bin/rsync \
+           -e "ssh -o StrictHostKeyChecking=no" \
+           --rsync-path="sudo -u www-data -g www-data rsync" \
+           deploy/gitinfo/info-*mw-config*.json ((ssh.username))@$HOST:/data/mediawiki/main/cache/gitinfo/ \
+           --no-perms \
+           --quiet \
+           --compress \
+           --delay-updates
+
 resource_types:
   - name: mediawiki-version-resource
     type: docker-image
@@ -26,34 +193,14 @@ jobs:
         - get: mediawiki-version
         - get: update-tools
         - get: mediawiki-config
-        - task: retrieve private settings
-          config:
-            platform: linux
-            image_resource:
-              type: docker-image
-              source:
-                repository: lgatica/openssh-client
-                tag: latest
-            outputs:
-              - name: private-settings
-            run:
-              path: sh
-              args:
-                - -ec
-                - |
-                  echo "((deployment.private_key))" > /tmp/ssh-key
-                  chmod 600 /tmp/ssh-key
-                  eval `ssh-agent -s`
-                  ssh-add /tmp/ssh-key
-              
-                  scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ((deployment.username))@188.68.49.74:/data/deployment/staging/mw-config/private/PrivateSettings.php private-settings/PrivateSettings.php
+        - <<: *retrieve_private_settings
       - task: clone mediawiki components
         config:
           platform: linux
           image_resource:
             type: docker-image
             source:
-              repository: alpine/git
+              repository: bash
               tag: latest
           inputs:
             - name: mediawiki-version
@@ -65,16 +212,17 @@ jobs:
             args:
               - -ec
               - |
+                apk add --no-cache -q --no-progress git
                 BUILD_ROOT=$PWD
-                
+
                 export GIT_BRANCH=`cat mediawiki-version/git-branch`
                 echo "Cloning $GIT_BRANCH"
                 git clone -q --depth 1 https://github.com/wikimedia/mediawiki.git --branch $GIT_BRANCH --single-branch mediawiki/
-                
+
                 rm -rf $BUILD_ROOT/mediawiki/extensions/ && mkdir $BUILD_ROOT/mediawiki/extensions/
                 cd $BUILD_ROOT/mediawiki/extensions/
                 $BUILD_ROOT/update-tools/clone-list.sh "$BUILD_ROOT/update-tools/extensions.list" "https://gerrit.wikimedia.org/r/mediawiki/extensions/"
-                
+
                 rm -rf $BUILD_ROOT/mediawiki/skins/ && mkdir $BUILD_ROOT/mediawiki/skins/
                 cd $BUILD_ROOT/mediawiki/skins/
                 $BUILD_ROOT/update-tools/clone-list.sh "$BUILD_ROOT/update-tools/skins.list" "https://gerrit.wikimedia.org/r/mediawiki/skins/"
@@ -102,26 +250,26 @@ jobs:
               - -exc
               - |
                 BUILD_ROOT=$PWD
-                
+
                 cd $BUILD_ROOT/mw-config/mw-config
                 composer update --no-dev --ansi --no-progress
-                
+
                 cd $BUILD_ROOT/main
                 cp $BUILD_ROOT/update-tools/mediawiki/* ./
-                
+
                 composer update --no-dev --ansi --no-progress --ignore-platform-reqs
 
                 php $BUILD_ROOT/mw-config/mw-config/multiversion/MWScript.php maintenance/mergeMessageFileList.php --wiki=droidwikiwiki --extensions-dir $BUILD_ROOT/main/extensions --output $BUILD_ROOT/mw-config/mw-config/ExtensionMessages.php
                 cp $BUILD_ROOT/mw-config/mw-config/ExtensionMessages.php $BUILD_ROOT/main/ExtensionMessages.php
                 mkdir -p $BUILD_ROOT/main/cache/l10n/
                 php $BUILD_ROOT/mw-config/mw-config/multiversion/MWScript.php maintenance/rebuildLocalisationCache.php --wiki=droidwikiwiki --outdir=$BUILD_ROOT/main/cache/l10n/ --threads=2
-                echo '<?php require_once "$IP/../mw-config/mw-config/CommonSettings.php";' > $BUILD_ROOT/main/LoclSettings.php
+                echo '<?php require_once "$IP/../mw-config/mw-config/CommonSettings.php";' > $BUILD_ROOT/main/LocalSettings.php
 
                 ln -s ./ w
                 ln -s ../mw-config/mw-config/docroot/static/ static
                 rm -rf images
                 ln -s /data/shareddata/mediawiki/images/ images
-                
+
                 cd $BUILD_ROOT/main
                 tar zcf $BUILD_ROOT/artifact/mediawiki .
       - task: publish version
@@ -144,7 +292,138 @@ jobs:
                 chmod 600 /tmp/ssh-key
                 eval `ssh-agent -s`
                 ssh-add /tmp/ssh-key
-                
+
                 MW_VERSION=`cat mediawiki-version/git-branch | sed 's:.*/::'`
-                
-                scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null artifact/mediawiki ((deployment.username))@188.68.49.74:/data/artifacts/mediawiki_$MW_VERSION
+
+                scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null artifact/mediawiki ((deployment.username))@((hosts.eclair)):/data/artifacts/mediawiki_$MW_VERSION
+
+  - name: deploy mediawiki
+    serial: true
+    plan:
+      - in_parallel:
+          - get: mediawiki-version
+            passed:
+              - mediawiki-release
+          - get: mediawiki-config
+          - get: update-tools
+      - <<: *retrieve_artifact
+      - task: unpack artifact
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: alpine
+              tag: latest
+          inputs:
+            - name: artifact
+          outputs:
+            - name: mediawiki
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                tar x -C mediawiki/ -f artifact/mediawiki
+      - <<: *build_config
+      - task: cache git info
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: python
+              tag: 3-alpine
+          inputs:
+            - name: mediawiki
+              path: main
+            - name: mediawiki-config
+              path: mw-config/mw-config
+            - name: update-tools
+          outputs:
+            - name: gitinfo
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                apk add -q --no-progress git
+
+                python ./update-tools/gitinfo/cache_git_info.py
+
+                mv main/cache/gitinfo/* gitinfo/
+      - in_parallel:
+        - task: rsync eclair
+          params:
+            HOST: ((hosts.eclair))
+          <<: *deploy_mediawiki
+        - task: rsync eclair
+          params:
+            HOST: ((hosts.donut))
+          <<: *deploy_mediawiki
+
+  - name: deploy config
+    plan:
+      - in_parallel:
+        - get: mediawiki-config
+        - get: update-tools
+        - get: mediawiki-version
+          passed:
+            - mediawiki-release
+      - in_parallel:
+        - <<: *retrieve_private_settings
+        - <<: *retrieve_artifact
+      - task: unpack ExtensionMessages.php
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: alpine
+              tag: latest
+          inputs:
+            - name: artifact
+          outputs:
+            - name: mediawiki
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                tar x -C mediawiki/ -f artifact/mediawiki ./ExtensionMessages.php
+      - task: cache git info
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: python
+              tag: 3-alpine
+          inputs:
+            - name: mediawiki-config
+              path: mw-config/mw-config
+            - name: update-tools
+          outputs:
+            - name: gitinfo
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                apk add -q --no-progress git
+
+                mkdir -p main/cache/gitinfo
+
+                python ./update-tools/gitinfo/cache_git_info.py
+
+                mv main/cache/gitinfo/* gitinfo/
+      - <<: *build_config
+      - in_parallel:
+        - task: rsync eclair
+          params:
+            HOST: ((hosts.eclair))
+          <<: *deploy_config
+        - task: rsync donut
+          params:
+            HOST: ((hosts.donut))
+          <<: *deploy_config
