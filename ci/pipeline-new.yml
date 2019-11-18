@@ -362,14 +362,38 @@ jobs:
             HOST: ((hosts.donut))
           <<: *deploy_mediawiki
 
+  - name: test config
+    plan:
+      - get: mediawiki-config
+        trigger: true
+      - task: test
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: composer
+              tag: latest
+          inputs:
+            - name: mediawiki-config
+          run:
+            path: bash
+            args:
+              - -ec
+              - |
+                cd mediawiki-config
+                composer update --ansi --no-progress --prefer-dist --profile -v
+
+                composer test
+
   - name: deploy config
     plan:
       - in_parallel:
         - get: mediawiki-config
-        - get: update-tools
-        - get: mediawiki-version
           passed:
-            - mediawiki-release
+            - test config
+          trigger: true
+        - get: update-tools
       - in_parallel:
         - <<: *retrieve_private_settings
         - <<: *retrieve_artifact
