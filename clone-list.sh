@@ -24,9 +24,9 @@ do
 	name=${UPDATE_INFO[0]}
 	version=${UPDATE_INFO[1]}
 	branchPath=${UPDATE_INFO[2]:-$2}
-	git clone --recurse-submodules -q --depth 1 $branchPath$name.git --branch $version --single-branch $name
+	git clone --recurse-submodules -q --depth 1 $branchPath$name --branch $version --single-branch $name
   else
-	git clone --recurse-submodules -q --depth 1 $2$name.git --branch $GIT_BRANCH --single-branch $name
+	git clone --recurse-submodules -q --depth 1 $2$name --branch $GIT_BRANCH --single-branch $name
   fi
   rc=$?; if [[ $rc != 0 ]]; then echo "Error in update.sh script"; exit $rc; fi
 done < $1
