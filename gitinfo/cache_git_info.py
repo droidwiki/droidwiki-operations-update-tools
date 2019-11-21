@@ -138,7 +138,10 @@ def git_info_filename(directory, install_path, cache_path):
     >>> git_info_filename('foo/bar/baz', 'foo', 'xyzzy')
     'xyzzy/info-bar-baz.json'
     """
-    path = directory
+    if ".." in directory:
+        path = os.path.abspath(directory)
+    else:
+        path = directory
     if path.startswith(install_path):
         path = path[len(install_path):]
     return os.path.join(cache_path, 'info%s.json' % path.replace('/', '-'))
