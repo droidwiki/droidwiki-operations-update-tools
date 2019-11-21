@@ -42,8 +42,7 @@ def cache_git_info():
             except (IOError, subprocess.CalledProcessError) as e:
                 pass
             else:
-                cache_file = git_info_filename(
-                    subdir, branch_dir, cache_dir).replace("deployment-staging", "mediawiki")
+                cache_file = git_info_filename(subdir, branch_dir, cache_dir)
                 with open(cache_file, 'w') as f:
                     json.dump(info, f)
 
@@ -139,7 +138,7 @@ def git_info_filename(directory, install_path, cache_path):
     'xyzzy/info-bar-baz.json'
     """
     if ".." in directory:
-        path = os.path.abspath(directory)
+        path = directory.replace('..', '/data/mediawiki', 1)
     else:
         path = directory
     if path.startswith(install_path):
