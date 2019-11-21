@@ -383,7 +383,7 @@ jobs:
           params:
             HOST: ((hosts.eclair))
           <<: *deploy_mediawiki
-        - task: rsync eclair
+        - task: rsync donut
           params:
             HOST: ((hosts.donut))
           <<: *deploy_mediawiki
