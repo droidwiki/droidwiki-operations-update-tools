@@ -483,6 +483,9 @@ jobs:
 
   - name: update-sitemaps
     serial: true
+    build_log_retention:
+      builds: 12
+      minimum_succeeded_builds: 2
     plan:
       - get: hourly
         trigger: true
