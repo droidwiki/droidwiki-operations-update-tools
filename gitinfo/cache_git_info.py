@@ -138,7 +138,7 @@ def git_info_filename(directory, install_path, cache_path):
     'xyzzy/info-bar-baz.json'
     """
     if ".." in directory:
-        path = directory.replace('..', '/data/mediawiki', 1)
+        path = directory.replace('..', 'data/mediawiki', 1)
     else:
         path = directory
     if path.startswith(install_path):
