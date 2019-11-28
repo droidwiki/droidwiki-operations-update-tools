@@ -1,5 +1,5 @@
 AbuseFilter
-AcceleratedMobilePages;master;https://github.com/FlorianSW/mediawiki-extensions-
+AcceleratedMobilePages;master;https://github.com/droidwiki/mediawiki-extensions-
 AmazonPartnernet;master;https://github.com/droidwiki/mediawiki-extension-
 AntiSpoof
 BetaFeatures
@@ -13,7 +13,7 @@ CommonsMetadata
 ConfirmEdit
 CookieWarning;master;https://github.com/wikimedia/mediawiki-extensions-
 Disambiguator
-DroidWiki;master;https://github.com/droidwiki/mediawiki-extension-
+DroidWiki;master;https://github.com/droidwiki/mediawiki-extensions-
 Echo
 Elastica
 EmbedVideo;master;https://gitlab.com/hydrawiki/extensions/
