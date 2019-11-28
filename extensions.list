@@ -22,7 +22,6 @@ GlobalUsage
 googleAnalytics;master;https://github.com/wikimedia/mediawiki-extensions-
 GoogleAnalyticsTopPages;master;https://github.com/droidwiki/mediawiki-extensions-
 GoogleLogin;master;https://github.com/wikimedia/mediawiki-extensions-
-GoogleSiteLinksSearchBox;master;https://github.com/droidwiki/mediawiki-extensions-
 InputBox
 Interwiki
 LoginNotify
