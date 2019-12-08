@@ -15,6 +15,8 @@
 # $2 - The default BASE_URL to be used when cloning.
 #
 
+scriptPath="$( cd "$(dirname "$0")" ; pwd -P )"
+
 while read line
 do
   name=$line
@@ -29,4 +31,9 @@ do
 	git clone --recurse-submodules -q --depth 1 $2$name --branch $GIT_BRANCH --single-branch $name
   fi
   rc=$?; if [[ $rc != 0 ]]; then echo "Error in update.sh script"; exit $rc; fi
+
+  for patch in $scriptPath/patches/$name/*.patch ; do
+    coloredEcho " | Applying patch $patch..." green
+    git am $patch
+  done
 done < $1
