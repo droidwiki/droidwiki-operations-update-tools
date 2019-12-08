@@ -17,6 +17,9 @@
 
 scriptPath="$( cd "$(dirname "$0")" ; pwd -P )"
 
+git config user.email "nobody@droidwiki.org"
+git config user.name "DroidWiki build system"
+
 while read line
 do
   name=$line
@@ -33,7 +36,10 @@ do
   rc=$?; if [[ $rc != 0 ]]; then echo "Error in update.sh script"; exit $rc; fi
 
   for patch in $scriptPath/patches/$name/*.patch ; do
-    coloredEcho " | Applying patch $patch..." green
+    if [[ ! -e "$patch" ]]; then
+      continue;
+    fi
+    echo "Applying patch $patch..."
     git am $patch
   done
 done < $1
