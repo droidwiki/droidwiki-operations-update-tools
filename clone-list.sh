@@ -17,8 +17,8 @@
 
 scriptPath="$( cd "$(dirname "$0")" ; pwd -P )"
 
-git config user.email "nobody@droidwiki.org"
-git config user.name "DroidWiki build system"
+git config --global user.email "nobody@droidwiki.org"
+git config --global user.name "DroidWiki build system"
 
 while read line
 do
