@@ -40,6 +40,8 @@ do
       continue;
     fi
     echo "Applying patch $patch..."
+	cd $name
     git am $patch
+	cd ..
   done
 done < $1
