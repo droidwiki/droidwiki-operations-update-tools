@@ -217,6 +217,7 @@ jobs:
     plan:
       - in_parallel:
         - get: mediawiki-version
+          trigger: true
         - get: update-tools
         - get: mediawiki-config
         - <<: *retrieve_private_settings
