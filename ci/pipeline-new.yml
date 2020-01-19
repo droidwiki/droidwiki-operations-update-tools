@@ -194,6 +194,12 @@ resource_types:
       repository: droidwiki/mediawiki-version-resource
       tag: latest
 
+  - name: slack-notification
+    type: docker-image
+    source:
+      repository: cfcommunity/slack-notification-resource
+      tag: latest
+
 resources:
   - name: mediawiki-version
     type: mediawiki-version-resource
@@ -211,6 +217,10 @@ resources:
     type: time
     source:
       interval: 1h
+  - name: slack-alert
+    type: slack-notification
+    source:
+      url: ((slack.webhook_url))
 
 jobs:
   - name: mediawiki-release
@@ -329,6 +339,7 @@ jobs:
     plan:
       - in_parallel:
           - get: mediawiki-version
+            trigger: true
             passed:
               - mediawiki-release
           - get: mediawiki-config
@@ -388,6 +399,60 @@ jobs:
           params:
             HOST: ((hosts.donut))
           <<: *deploy_mediawiki
+
+  - name: smoke-tests
+    build_log_retention:
+      builds: 12
+      minimum_succeeded_builds: 2
+    plan:
+      - get: mediawiki-version
+        trigger: true
+        passed:
+          - deploy mediawiki
+      - get: mediawiki-config
+        passed:
+          - deploy config
+        trigger: true
+      - get: hourly
+        trigger: true
+      - task: smoke-test
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: curlimages/curl
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                echo "Selecting droidwiki.org"
+                echo "Checking Android"
+                curl --silent -I --fail https://www.droidwiki.org/wiki/Android
+                echo "Checking Special:RecentChanges"
+                curl --silent -IL --fail https://www.droidwiki.org/wiki/Special:RecentChanges
+
+                echo "Selecting en.droidwiki.org"
+                echo "Checking Android"
+                curl --silent -I --fail https://en.droidwiki.org/wiki/Android
+                echo "Checking Special:RecentChanges"
+                curl --silent -I --fail https://en.droidwiki.org/wiki/Special:RecentChanges
+
+                echo "Selecting data.droidwiki.org"
+                echo "Checking Android"
+                curl --silent -I --fail https://data.droidwiki.org/wiki/Item:Q292
+                echo "Checking Special:RecentChanges"
+                curl --silent -IL --fail https://data.droidwiki.org/wiki/Special:RecentChanges
+        on_failure:
+          put: slack-alert
+          params:
+            channel: '#allgemein'
+            text: |
+              Smoke check failed, check it here:
+              https://ci.go2tech.de/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+              or at:
+              http://ci.go2tech.de/builds/$BUILD_ID
 
   - name: test config
     plan:
