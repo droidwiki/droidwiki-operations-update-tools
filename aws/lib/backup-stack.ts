@@ -17,11 +17,6 @@ export class BackupStack extends cdk.Stack {
             accessControl: BucketAccessControl.PRIVATE,
             blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
             lifecycleRules: [{
-                transitions: [{
-                    storageClass: StorageClass.INTELLIGENT_TIERING,
-                    transitionAfter: Duration.seconds(0)
-                }]
-            }, {
                 expiration: Duration.days(7)
             }],
         });
