@@ -1,6 +1,6 @@
 import * as cdk from '@aws-cdk/core';
 import {Duration} from '@aws-cdk/core';
-import {BlockPublicAccess, Bucket, BucketAccessControl, BucketEncryption, IBucket, StorageClass} from "@aws-cdk/aws-s3";
+import {BlockPublicAccess, Bucket, BucketAccessControl, BucketEncryption, IBucket} from "@aws-cdk/aws-s3";
 import {Effect, Group, ManagedPolicy, PolicyStatement, User} from "@aws-cdk/aws-iam";
 
 export class BackupStack extends cdk.Stack {
@@ -17,7 +17,7 @@ export class BackupStack extends cdk.Stack {
             accessControl: BucketAccessControl.PRIVATE,
             blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
             lifecycleRules: [{
-                expiration: Duration.days(7)
+                expiration: Duration.days(4)
             }],
         });
     }
