@@ -45,7 +45,8 @@ export class BackupStack extends cdk.Stack {
                 's3:GetBucketLocation',
             ],
             resources: [
-                bucket.bucketArn + '/*'
+                bucket.bucketArn + '/*',
+                bucket.bucketArn
             ]
         });
         return new ManagedPolicy(this, 'backups-write-policy', {
