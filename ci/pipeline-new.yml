@@ -185,7 +185,7 @@ run_maintenance: &run_maintenance
 
           ssh -o StrictHostKeyChecking=no -n \
            ((deployment.username))@((hosts.donut)) \
-           "sudo -u www-data php /data/mediawiki/mw-config/mw-config/multiversion/MWScript.php $SCRIPT_AND_ARGS"
+           "sudo docker run --rm -u \$(id -u www-data) -v /data:/data droidwiki/php-fpm php /data/mediawiki/mw-config/mw-config/multiversion/MWScript.php $SCRIPT_AND_ARGS"
 
 resource_types:
   - name: mediawiki-version-resource
@@ -572,6 +572,51 @@ jobs:
           params:
             SCRIPT_AND_ARGS: "generateSitemap.php --wiki=endroidwikiwiki --fspath /data/mediawiki/main/sitemap/ --urlpath /sitemap/"
           <<: *run_maintenance
+      - task: rsync eclair
+        params:
+          HOST_SOURCE: ((hosts.donut))
+          HOST_TARGET: ((hosts.eclair))
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: alpine
+              tag: latest
+          run:
+            path: sh
+            args:
+              - -ec
+              - |
+                apk add -q --no-progress rsync openssh-client
+
+                echo "((deployment.private_key))" > /tmp/ssh-key
+                chmod 600 /tmp/ssh-key
+                eval `ssh-agent -s`
+                ssh-add /tmp/ssh-key
+
+                mkdir sitemap
+
+                /usr/bin/rsync \
+                 -e "ssh -o StrictHostKeyChecking=no" \
+                 --rsync-path="sudo -u www-data -g www-data rsync" \
+                 ((deployment.username))@$HOST_SOURCE:/data/mediawiki/main/sitemap/ ./sitemap/ \
+                 --no-perms \
+                 --quiet \
+                 --compress \
+                 --recursive \
+                 --delay-updates
+
+                /usr/bin/rsync \
+                 -e "ssh -o StrictHostKeyChecking=no" \
+                 --rsync-path="sudo -u www-data -g www-data rsync" \
+                 ./sitemap/ ((deployment.username))@$HOST_TARGET:/data/mediawiki/main/sitemap/ \
+                 --no-perms \
+                 --quiet \
+                 --compress \
+                 --delay-updates \
+                 --recursive \
+                 --delete
 
   - name: update-database
     serial: true
