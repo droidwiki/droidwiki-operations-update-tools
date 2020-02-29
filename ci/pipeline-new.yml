@@ -183,9 +183,8 @@ run_maintenance: &run_maintenance
           eval `ssh-agent -s`
           ssh-add /tmp/ssh-key
 
-          ssh -o StrictHostKeyChecking=no -n \
-           ((deployment.username))@((hosts.donut)) \
-           "sudo docker run --rm -u \$(id -u www-data) -v /data:/data droidwiki/php-fpm php /data/mediawiki/mw-config/mw-config/multiversion/MWScript.php $SCRIPT_AND_ARGS"
+          ssh -o StrictHostKeyChecking=no -n ((deployment.username))@((hosts.donut)) \
+           "sudo php /data/mediawiki/mw-config/mw-config/multiversion/MWScript.php $SCRIPT_AND_ARGS"
 
 resource_types:
   - name: mediawiki-version-resource
@@ -255,6 +254,16 @@ jobs:
                 export GIT_BRANCH=`cat mediawiki-version/git-branch`
                 echo "Cloning $GIT_BRANCH"
                 git clone -q --depth 1 https://github.com/wikimedia/mediawiki.git --branch $GIT_BRANCH --single-branch mediawiki/
+                cd $BUILD_ROOT/mediawiki
+                for patch in $scriptPath/patches/*.patch ; do
+                  if [[ ! -e "$patch" ]]; then
+                    continue;
+                  fi
+                  echo "Applying patch $patch..."
+                  cd $name
+                  git am $patch
+                  cd ..
+                done
 
                 rm -rf $BUILD_ROOT/mediawiki/extensions/ && mkdir $BUILD_ROOT/mediawiki/extensions/
                 cd $BUILD_ROOT/mediawiki/extensions/

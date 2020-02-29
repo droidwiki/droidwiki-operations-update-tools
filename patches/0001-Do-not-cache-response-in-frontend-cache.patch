@@ -1,0 +1,60 @@
+From 7b5d1f35bf7a2db359972bcdd75edac77cae10db Mon Sep 17 00:00:00 2001
+From: Florian <florian.schmidt.stargatewissen@gmail.com>
+Date: Sat, 29 Feb 2020 15:03:27 +0100
+Subject: [PATCH] [Special:Random] Do not cache response in frontend-cache
+
+When a wiki uses varnish (or any other frontend cache), a not-logged in
+user who requests the Special:Random page, will get a redirect.
+However, this response is cached (on a default, cache-all logged-out
+traffic configuration) in the frontend-cache, e.g. varnish. If the same
+user, or any other user, requests Special:Random again, the request is
+served from the frontend-cache, instead of being requested by the
+MediaWiki app itself. This results in the same page redirect as on the
+first request.
+
+The user, on the other side, expects another page on each request to
+Special:Random.
+
+This change disables the client cache, which should be respected by any
+of the most known frontend caches in order to disable them to cache the
+result of Special:Random.
+
+Change-Id: I8311440ac6f14d62f4474005f1585a2c6d933baf
+---
+
+diff --git a/includes/specials/SpecialRandompage.php b/includes/specials/SpecialRandompage.php
+index 754459c..a8717b7 100644
+--- a/includes/specials/SpecialRandompage.php
++++ b/includes/specials/SpecialRandompage.php
+@@ -78,7 +78,9 @@
+ 		$redirectParam = $this->isRedirect() ? [ 'redirect' => 'no' ] : [];
+ 		$query = array_merge( $this->getRequest()->getValues(), $redirectParam );
+ 		unset( $query['title'] );
+-		$this->getOutput()->redirect( $title->getFullURL( $query ) );
++		$out = $this->getOutput();
++		$out->enableClientCache( false );
++		$out->redirect( $title->getFullURL( $query ) );
+ 	}
+ 
+ 	/**
+diff --git a/tests/phpunit/includes/specials/SpecialRandompageTest.php b/tests/phpunit/includes/specials/SpecialRandompageTest.php
+new file mode 100644
+index 0000000..eb119ff
+--- /dev/null
++++ b/tests/phpunit/includes/specials/SpecialRandompageTest.php
+@@ -0,0 +1,15 @@
++<?php
++
++class SpecialRandompageTest extends MediaWikiTestCase {
++
++	/**
++	 * @covers RandomPage::execute
++	 */
++	public function testDisablesFrontendCache() {
++		$special = new RandomPage();
++
++		$special->execute( null );
++
++		$this->assertFalse( $special->getOutput()->enableClientCache( true ) );
++	}
++}
