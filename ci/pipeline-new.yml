@@ -309,7 +309,6 @@ jobs:
                 php $BUILD_ROOT/mw-config/mw-config/multiversion/MWScript.php maintenance/mergeMessageFileList.php --wiki=droidwikiwiki --extensions-dir $BUILD_ROOT/main/extensions --output $BUILD_ROOT/mw-config/mw-config/ExtensionMessages.php
                 cp $BUILD_ROOT/mw-config/mw-config/ExtensionMessages.php $BUILD_ROOT/main/ExtensionMessages.php
                 mkdir -p $BUILD_ROOT/main/cache/l10n/
-                php $BUILD_ROOT/mw-config/mw-config/multiversion/MWScript.php maintenance/rebuildLocalisationCache.php --wiki=droidwikiwiki --outdir=$BUILD_ROOT/main/cache/l10n/ --threads=2 --store-class=LCStoreCDB
                 php $BUILD_ROOT/mw-config/mw-config/multiversion/MWScript.php maintenance/rebuildLocalisationCache.php --wiki=droidwikiwiki --outdir=$BUILD_ROOT/main/cache/l10n/ --threads=2 --store-class=LCStoreStaticArray
                 echo '<?php require_once "$IP/../mw-config/mw-config/CommonSettings.php";' > $BUILD_ROOT/main/LocalSettings.php
 
