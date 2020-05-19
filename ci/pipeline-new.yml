@@ -489,6 +489,7 @@ jobs:
                 composer test
 
   - name: deploy config
+    serial: true
     plan:
       - in_parallel:
         - get: mediawiki-config
