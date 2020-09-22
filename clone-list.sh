@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 #
 # Clones a list of repositories into the current directory. Following parameters are allowed:
 #
@@ -40,8 +42,8 @@ do
       continue;
     fi
     echo "Applying patch $patch..."
-	cd $name
-    git am $patch
-	cd ..
-  done
+    cd $name
+    git am $patch || exit 1
+    cd ..
+  done || exit 1
 done < $1

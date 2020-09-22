@@ -262,7 +262,7 @@ jobs:
                     continue;
                   fi
                   echo "Applying patch $patch..."
-                  git am $patch
+                  git am $patch || exit 1
                   cd ..
                 done
 
