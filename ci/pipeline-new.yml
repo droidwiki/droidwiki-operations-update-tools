@@ -19,7 +19,7 @@ retrieve_private_settings: &retrieve_private_settings
           eval `ssh-agent -s`
           ssh-add /tmp/ssh-key
 
-          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ((deployment.username))@((hosts.eclair)):/data/deployment/staging/mw-config/private/PrivateSettings.php private-settings/PrivateSettings.php
+          scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ((deployment.username))@((hosts.eclair)):/data/mediawiki/mw-config/private/PrivateSettings.php private-settings/PrivateSettings.php
 
 retriee_artifact: &retrieve_artifact
   task: retrieve artifact
