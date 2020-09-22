@@ -1,20 +1,23 @@
-From ee2001cc4446ed8cddce87e2ddba7b0ffa32d0d1 Mon Sep 17 00:00:00 2001
+From b7909f146a8d99066dbc57758528352b0ba2f4a0 Mon Sep 17 00:00:00 2001
 From: Florian <florian.schmidt.welzow@t-online.de>
-Date: Mon, 31 Jul 2017 18:47:05 +0200
-Subject: [PATCH] Add custom code for LangLinkHandler because of T172076
+Date: Tue, 22 Sep 2020 17:05:21 +0200
+Subject: [PATCH] [PATCH] Add custom code for LangLinkHandler because of
+ T172076
 
 ---
- client/includes/LangLinkHandler.php | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ client/includes/Hooks/LangLinkHandler.php | 11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
-diff --git a/client/includes/LangLinkHandler.php b/client/includes/LangLinkHandler.php
-index 222c3cd8f..3eef8c7b7 100644
---- a/client/includes/LangLinkHandler.php
-+++ b/client/includes/LangLinkHandler.php
-@@ -399,13 +399,9 @@ class LangLinkHandler {
+diff --git a/client/includes/Hooks/LangLinkHandler.php b/client/includes/Hooks/LangLinkHandler.php
+index e39d772de5..32cb6c8a91 100644
+--- a/client/includes/Hooks/LangLinkHandler.php
++++ b/client/includes/Hooks/LangLinkHandler.php
+@@ -335,15 +335,8 @@ class LangLinkHandler {
+ 	 * @return string
+ 	 */
  	public function getInterwikiCodeFromSite( Site $site ) {
- 		// FIXME: We should use $site->getInterwikiIds, but the interwiki ids in
- 		// the sites table are wrong currently, see T137537.
+-		// FIXME: We should use $site->getInterwikiIds, but the interwiki ids in
+-		// the sites table are wrong currently, see T137537.
 -		$id = $site->getGlobalId();
 -		$id = preg_replace( '/(wiki\w*|wiktionary)$/', '', $id );
 -		$id = strtr( $id, [ '_' => '-' ] );
@@ -22,12 +25,11 @@ index 222c3cd8f..3eef8c7b7 100644
 -			$id = $site->getLanguageCode();
 -		}
 -		return $id;
-+
 +		// droidwiki.org customisation, see T172076
 +		return $site->getLanguageCode();
  	}
  
  }
 -- 
-2.15.1
+2.26.2.windows.1
 
