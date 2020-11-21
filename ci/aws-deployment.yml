@@ -36,4 +36,4 @@ jobs:
               - -ec
               - |
                 npm --quiet ci --no-progress
-                npx cdk deploy '*'
+                npx cdk deploy --require-approval=never '*'
