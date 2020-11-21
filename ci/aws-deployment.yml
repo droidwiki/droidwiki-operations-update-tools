@@ -35,5 +35,5 @@ jobs:
             args:
               - -ec
               - |
-                npm ci --silent --no-progress
-                npx cdk deploy
+                npm --quiet ci --no-progress
+                npx cdk deploy '*'
