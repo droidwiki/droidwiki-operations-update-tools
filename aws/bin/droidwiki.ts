@@ -2,6 +2,7 @@
 import 'source-map-support/register';
 import * as cdk from '@aws-cdk/core';
 import { BackupStack } from '../lib/backup-stack';
+import {DockerLogsStack} from "../lib/docker-logs-stack";
 
 const app = new cdk.App();
 let droidwikiAccountProps = {
@@ -11,3 +12,4 @@ let droidwikiAccountProps = {
     }
 };
 new BackupStack(app, 'BackupStack', droidwikiAccountProps);
+new DockerLogsStack(app, 'DockerLogsStack', droidwikiAccountProps);

@@ -1,0 +1,39 @@
+resources:
+  - name: update-tools
+    type: git
+    check_every: 24h
+    webhook_token: ((github.webhook_token))
+    icon: github-circle
+    source:
+      uri: https://github.com/droidwiki/operations-update-tools.git
+      paths:
+        - aws/*
+
+jobs:
+  - name: deploy
+    serial: true
+    plan:
+      - get: update-tools
+        trigger: true
+      - task: deploy-stack
+        params:
+          AWS_ACCESS_KEY_ID: ((aws.access_key_id))
+          AWS_SECRET_ACCESS_KEY: ((aws.secret_access_key))
+          AWS_DEFAULT_REGION: eu-west-1
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: node
+              tag: current-alpine
+          inputs:
+            - name: update-tools
+          run:
+            path: sh
+            dir: update-tools/aws
+            args:
+              - -ec
+              - |
+                npm ci --silent --no-progress
+                npx cdk deploy
