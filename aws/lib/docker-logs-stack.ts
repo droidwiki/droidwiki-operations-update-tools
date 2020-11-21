@@ -1,5 +1,5 @@
 import * as cdk from '@aws-cdk/core';
-import {RemovalPolicy} from '@aws-cdk/core';
+import {Fn, RemovalPolicy} from '@aws-cdk/core';
 import {Effect, Group, ManagedPolicy, PolicyStatement, User} from "@aws-cdk/aws-iam";
 import {LogGroup, RetentionDays} from "@aws-cdk/aws-logs";
 
@@ -33,14 +33,14 @@ export class DockerLogsStack extends cdk.Stack {
             actions: [
                 'logs:CreateLogStream',
             ],
-            resources: ['arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:log-group:/docker/*']
+            resources: [Fn.sub('arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:log-group:/docker/*')]
         });
         const putLogEvent = new PolicyStatement({
             effect: Effect.ALLOW,
             actions: [
                 'logs:PutLogEvents',
             ],
-            resources: ['arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:log-group:/docker/*:log-stream:*']
+            resources: [Fn.sub('arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:log-group:/docker/*:log-stream:*')]
         });
         return new ManagedPolicy(this, 'docker-awslogs', {
             statements: [createLogStream, putLogEvent],
