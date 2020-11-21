@@ -33,14 +33,14 @@ export class DockerLogsStack extends cdk.Stack {
             actions: [
                 'logs:CreateLogStream',
             ],
-            resources: [Fn.sub('arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:log-group:/docker/*')]
+            resources: [Fn.sub('arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/docker/*')]
         });
         const putLogEvent = new PolicyStatement({
             effect: Effect.ALLOW,
             actions: [
                 'logs:PutLogEvents',
             ],
-            resources: [Fn.sub('arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:log-group:/docker/*:log-stream:*')]
+            resources: [Fn.sub('arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/docker/*:log-stream:*')]
         });
         return new ManagedPolicy(this, 'docker-awslogs', {
             statements: [createLogStream, putLogEvent],
