@@ -8,10 +8,24 @@ export class DockerLogsStack extends cdk.Stack {
         super(scope, id, props);
 
         this.iamPermissions();
-        new LogGroup(this, 'frontend-proxy', {
-            logGroupName: '/docker/frontend-proxy',
+        this.createLogGroup('frontend-proxy');
+        this.createLogGroup('php');
+        this.createLogGroup('jobrunner');
+        this.createLogGroup('cache');
+        this.createLogGroup('memcached');
+        this.createLogGroup('redis');
+        this.createLogGroup('thumbor');
+        this.createLogGroup('citoid');
+        this.createLogGroup('zotero');
+        this.createLogGroup('parsoid');
+        this.createLogGroup('restbase');
+    }
+
+    private createLogGroup(name: string, retention: RetentionDays = RetentionDays.ONE_WEEK) {
+        new LogGroup(this, name, {
+            logGroupName: `/docker/${name}`,
             removalPolicy: RemovalPolicy.DESTROY,
-            retention: RetentionDays.ONE_WEEK
+            retention
         });
     }
 
