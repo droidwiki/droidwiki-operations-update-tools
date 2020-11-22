@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+  AdministratorGroup:
+    Type: AWS::IAM::Group
+    DeletionPolicy: Retain
+    Properties:
+      GroupName: Administrator
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+
+  AutomationUser:
+    Type: AWS::IAM::User
+    DeletionPolicy: Retain
+    Properties:
+      UserName: automation
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - iam:GetPolicy
+                  - iam:CreatePolicy
+                  - iam:GetPolicy
+                  - iam:ListPolicies
+                  - iam:GetPolicyVersion
+                  - iam:CreatePolicyVersion
+                  - iam:SetDefaultPolicyVersion
+                  - iam:DeletePolicy
+                  - iam:DeletePolicyVersion
+                  - iam:ListPolicyVersions
+                  - iam:AddUserToGroup
+                  - iam:RemoveUserFromGroup
+                  - iam:ListGroupsForUser
+                  - iam:AttachGroupPolicy
+                  - iam:DetachGroupPolicy
+                  - iam:DeleteGroupPolicy
+                  - iam:PutGroupPolicy
+                  - iam:CreateGroup
+                  - iam:UpdateGroup
+                  - iam:GetGroup
+                  - iam:GetGroupPolicy
+                  - iam:ListAttachedGroupPolicies
+                  - iam:ListGroups
+                  - iam:DeleteGroup
+                  - iam:CreateUser
+                  - iam:UpdateUser
+                  - iam:GetUser
+                  - iam:GetUserPolicy
+                  - iam:ListUserPolicies
+                  - iam:ListUserTags
+                  - iam:TagUser
+                  - iam:UntagUser
+                  - iam:ListUsers
+                  - iam:AttachUserPolicy
+                  - iam:PutUserPolicy
+                  - iam:ListAttachedUserPolicies
+                  - iam:DetachUserPolicy
+                  - iam:DeleteUser
+                Effect: Allow
+                Resource: '*'
+              - Action:
+                  - cloudformation:*
+                  - s3:*
+                  - logs:*
+                Effect: Allow
+                Resource: '*'
+            Version: '2012-10-17'
+          PolicyName: deployment-policy
+
+  UserFlorian:
+    Type: AWS::IAM::User
+    DeletionPolicy: Retain
+    Properties:
+      UserName: florian
+
+  AdministratorGroupAssignment:
+    Type: AWS::IAM::UserToGroupAddition
+    Properties:
+      Users:
+      - !Ref UserFlorian
+      GroupName: !Ref AdministratorGroup
