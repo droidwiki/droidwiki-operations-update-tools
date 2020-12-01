@@ -10,6 +10,7 @@ export class DockerLogsStack extends cdk.Stack {
         this.iamPermissions();
         this.createLogGroup('frontend-proxy');
         this.createLogGroup('php');
+        this.createLogGroup('php-canary');
         this.createLogGroup('jobrunner');
         this.createLogGroup('cache');
         this.createLogGroup('memcached');
