@@ -1,4 +1,4 @@
-FROM composer:latest
+FROM composer:1
 
 LABEL maintainer="florian@go2tech.de"
 
