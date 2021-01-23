@@ -583,6 +583,10 @@ jobs:
           params:
             SCRIPT_AND_ARGS: "generateSitemap.php --wiki=endroidwikiwiki --fspath /data/mediawiki/main/sitemap/ --urlpath /sitemap/"
           <<: *run_maintenance
+        - task: update armakothwiki
+          params:
+            SCRIPT_AND_ARGS: "generateSitemap.php --wiki=armakothwiki --fspath /data/mediawiki/main/sitemap/ --urlpath /sitemap/"
+          <<: *run_maintenance
       - task: rsync eclair
         params:
           HOST_SOURCE: ((hosts.donut))
@@ -652,4 +656,8 @@ jobs:
         - task: update datawiki
           params:
             SCRIPT_AND_ARGS: "update.php --wiki=datawiki --quick"
+          <<: *run_maintenance
+        - task: update armakothwiki
+          params:
+            SCRIPT_AND_ARGS: "update.php --wiki=armakothwiki --quick"
           <<: *run_maintenance
