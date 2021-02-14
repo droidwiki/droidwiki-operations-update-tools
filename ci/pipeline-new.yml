@@ -303,6 +303,7 @@ jobs:
                 cd $BUILD_ROOT/main
                 cp $BUILD_ROOT/update-tools/mediawiki/* ./
 
+                # see https://gerrit.wikimedia.org/r/c/mediawiki/extensions/GoogleLogin/+/663957
                 sed -i "s/~2.0.2/^2.0.0/g" extensions/GoogleLogin/composer.json
 
                 composer update --no-dev --ansi --no-progress --ignore-platform-reqs
