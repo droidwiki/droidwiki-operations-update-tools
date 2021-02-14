@@ -4,8 +4,7 @@
 		"pear/mail": "*",
 		"pear/mail_mime": "*",
 		"pear/mail_mime-decode": "*",
-		"pear/net_smtp": "*",
-		"pear/auth_sasl": "dev-master"
+		"pear/net_smtp": "*"
 	},
 	"extra": {
 		"merge-plugin": {

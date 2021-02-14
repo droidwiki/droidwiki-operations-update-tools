@@ -55,8 +55,7 @@ build_config: &build_config
     image_resource:
       type: registry-image
       source:
-        repository: composer
-        tag: latest
+        repository: droidwiki/php-build-image
     inputs:
       - name: mediawiki-config
       - name: mediawiki
@@ -292,7 +291,7 @@ jobs:
           outputs:
             - name: artifact
           run:
-            path: bash
+            path: sh
             args:
               - -exc
               - |
@@ -303,6 +302,8 @@ jobs:
 
                 cd $BUILD_ROOT/main
                 cp $BUILD_ROOT/update-tools/mediawiki/* ./
+
+                sed -i "s/~2.0.2/^2.0.0/g" extensions/GoogleLogin/composer.json
 
                 composer update --no-dev --ansi --no-progress --ignore-platform-reqs
 
@@ -478,7 +479,7 @@ jobs:
           inputs:
             - name: mediawiki-config
           run:
-            path: bash
+            path: sh
             args:
               - -ec
               - |
