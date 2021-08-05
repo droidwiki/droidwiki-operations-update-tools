@@ -1,5 +1,5 @@
 retrieve_private_settings: &retrieve_private_settings
-  task: retrieve private settings
+  task: retrieve-private-settings
   config:
     platform: linux
     image_resource:
@@ -22,7 +22,7 @@ retrieve_private_settings: &retrieve_private_settings
           scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ((deployment.username))@((hosts.eclair)):/data/mediawiki/mw-config/private/PrivateSettings.php private-settings/PrivateSettings.php
 
 retriee_artifact: &retrieve_artifact
-  task: retrieve artifact
+  task: retrieve-artifact
   config:
     platform: linux
     image_resource:
@@ -49,7 +49,7 @@ retriee_artifact: &retrieve_artifact
           scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ((deployment.username))@((hosts.eclair)):/data/artifacts/mediawiki_$MW_VERSION artifact/mediawiki
 
 build_config: &build_config
-  task: build config
+  task: build-config
   config:
     platform: linux
     image_resource:
@@ -189,12 +189,16 @@ resource_types:
   - name: mediawiki-version-resource
     type: registry-image
     source:
+      username: ((docker.username))
+      password: ((docker.access_token))
       repository: droidwiki/mediawiki-version-resource
       tag: latest
 
   - name: slack-notification
     type: registry-image
     source:
+      username: ((docker.username))
+      password: ((docker.access_token))
       repository: cfcommunity/slack-notification-resource
       tag: latest
 
@@ -229,12 +233,14 @@ jobs:
         - get: update-tools
         - get: mediawiki-config
         - <<: *retrieve_private_settings
-      - task: clone mediawiki components
+      - task: clone-mediawiki-components
         config:
           platform: linux
           image_resource:
             type: registry-image
             source:
+              username: ((docker.username))
+              password: ((docker.access_token))
               repository: bash
               tag: latest
           inputs:
@@ -272,12 +278,14 @@ jobs:
                 rm -rf $BUILD_ROOT/mediawiki/skins/ && mkdir $BUILD_ROOT/mediawiki/skins/
                 cd $BUILD_ROOT/mediawiki/skins/
                 $BUILD_ROOT/update-tools/clone-list.sh "$BUILD_ROOT/update-tools/skins.list" "https://gerrit.wikimedia.org/r/mediawiki/skins/"
-      - task: build artifact
+      - task: build-artifact
         config:
           platform: linux
           image_resource:
             type: registry-image
             source:
+              username: ((docker.username))
+              password: ((docker.access_token))
               repository: droidwiki/php-build-image
               tag: latest
           inputs:
@@ -321,12 +329,14 @@ jobs:
 
                 cd $BUILD_ROOT/main
                 tar zcf $BUILD_ROOT/artifact/mediawiki .
-      - task: publish version
+      - task: publish-version
         config:
           platform: linux
           image_resource:
             type: registry-image
             source:
+              username: ((docker.username))
+              password: ((docker.access_token))
               repository: lgatica/openssh-client
               tag: latest
           inputs:
@@ -346,7 +356,7 @@ jobs:
 
                 scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null artifact/mediawiki ((deployment.username))@((hosts.eclair)):/data/artifacts/mediawiki_$MW_VERSION
 
-  - name: deploy mediawiki
+  - name: deploy-mediawiki
     serial: true
     plan:
       - in_parallel:
@@ -357,12 +367,14 @@ jobs:
           - get: mediawiki-config
           - get: update-tools
       - <<: *retrieve_artifact
-      - task: unpack artifact
+      - task: unpack-artifact
         config:
           platform: linux
           image_resource:
             type: registry-image
             source:
+              username: ((docker.username))
+              password: ((docker.access_token))
               repository: alpine
               tag: latest
           inputs:
@@ -376,12 +388,14 @@ jobs:
               - |
                 tar x -C mediawiki/ -f artifact/mediawiki
       - <<: *build_config
-      - task: cache git info
+      - task: cache-git-info
         config:
           platform: linux
           image_resource:
             type: registry-image
             source:
+              username: ((docker.username))
+              password: ((docker.access_token))
               repository: python
               tag: 3-alpine
           inputs:
@@ -403,11 +417,11 @@ jobs:
 
                 mv main/cache/gitinfo/* gitinfo/
       - in_parallel:
-        - task: rsync eclair
+        - task: rsync-eclair
           params:
             HOST: ((hosts.eclair))
           <<: *deploy_mediawiki
-        - task: rsync donut
+        - task: rsync-donut
           params:
             HOST: ((hosts.donut))
           <<: *deploy_mediawiki
@@ -420,10 +434,10 @@ jobs:
       - get: mediawiki-version
         trigger: true
         passed:
-          - deploy mediawiki
+          - deploy-mediawiki
       - get: mediawiki-config
         passed:
-          - deploy config
+          - deploy-config
         trigger: true
       - get: hourly
         trigger: true
@@ -433,6 +447,8 @@ jobs:
           image_resource:
             type: registry-image
             source:
+              username: ((docker.username))
+              password: ((docker.access_token))
               repository: curlimages/curl
           run:
             path: sh
@@ -466,7 +482,7 @@ jobs:
               or at:
               http://ci.go2tech.de/builds/$BUILD_ID
 
-  - name: test config
+  - name: test-config
     plan:
       - get: mediawiki-config
         trigger: true
@@ -476,6 +492,8 @@ jobs:
           image_resource:
             type: registry-image
             source:
+              username: ((docker.username))
+              password: ((docker.access_token))
               repository: droidwiki/php-build-image
           inputs:
             - name: mediawiki-config
@@ -489,13 +507,13 @@ jobs:
 
                 composer test
 
-  - name: deploy config
+  - name: deploy-config
     serial: true
     plan:
       - in_parallel:
         - get: mediawiki-config
           passed:
-            - test config
+            - test-config
           trigger: true
         - get: update-tools
         - get: mediawiki-version
@@ -504,12 +522,14 @@ jobs:
       - in_parallel:
         - <<: *retrieve_private_settings
         - <<: *retrieve_artifact
-      - task: unpack ExtensionMessages.php
+      - task: unpack-extension-messages
         config:
           platform: linux
           image_resource:
             type: registry-image
             source:
+              username: ((docker.username))
+              password: ((docker.access_token))
               repository: alpine
               tag: latest
           inputs:
@@ -522,12 +542,14 @@ jobs:
               - -ec
               - |
                 tar x -C mediawiki/ -f artifact/mediawiki ./ExtensionMessages.php
-      - task: cache git info
+      - task: cache-git-info
         config:
           platform: linux
           image_resource:
             type: registry-image
             source:
+              username: ((docker.username))
+              password: ((docker.access_token))
               repository: python
               tag: 3-alpine
           inputs:
@@ -550,11 +572,11 @@ jobs:
                 mv main/cache/gitinfo/* gitinfo/
       - <<: *build_config
       - in_parallel:
-        - task: rsync eclair
+        - task: rsync-eclair
           params:
             HOST: ((hosts.eclair))
           <<: *deploy_config
-        - task: rsync donut
+        - task: rsync-donut
           params:
             HOST: ((hosts.donut))
           <<: *deploy_config
@@ -569,26 +591,26 @@ jobs:
         trigger: true
       - get: mediawiki-version
         passed:
-          - deploy mediawiki
+          - deploy-mediawiki
         trigger: true
       - in_parallel:
-        - task: update droidwikiwiki
+        - task: update-droidwikiwiki
           params:
             SCRIPT_AND_ARGS: "generateSitemap.php --wiki=droidwikiwiki --fspath /data/mediawiki/main/sitemap/ --urlpath /sitemap/"
           <<: *run_maintenance
-        - task: update datawiki
+        - task: update-datawiki
           params:
             SCRIPT_AND_ARGS: "generateSitemap.php --wiki=datawiki --fspath /data/mediawiki/main/sitemap/ --urlpath /sitemap/"
           <<: *run_maintenance
-        - task: update endroidwikiwiki
+        - task: update-endroidwikiwiki
           params:
             SCRIPT_AND_ARGS: "generateSitemap.php --wiki=endroidwikiwiki --fspath /data/mediawiki/main/sitemap/ --urlpath /sitemap/"
           <<: *run_maintenance
-        - task: update armakothwiki
+        - task: update-armakothwiki
           params:
             SCRIPT_AND_ARGS: "generateSitemap.php --wiki=armakothwiki --fspath /data/mediawiki/main/sitemap/ --urlpath /sitemap/"
           <<: *run_maintenance
-      - task: rsync eclair
+      - task: rsync-eclair
         params:
           HOST_SOURCE: ((hosts.donut))
           HOST_TARGET: ((hosts.eclair))
@@ -597,6 +619,8 @@ jobs:
           image_resource:
             type: registry-image
             source:
+              username: ((docker.username))
+              password: ((docker.access_token))
               repository: alpine
               tag: latest
           run:
@@ -639,26 +663,26 @@ jobs:
     plan:
       - get: mediawiki-version
         passed:
-          - deploy mediawiki
+          - deploy-mediawiki
         trigger: true
       - in_parallel:
-        - task: update droidwikiwiki
+        - task: update-droidwikiwiki
           params:
             SCRIPT_AND_ARGS: "update.php --wiki=droidwikiwiki --quick"
           <<: *run_maintenance
-        - task: update datawiki
+        - task: update-datawiki
           params:
             SCRIPT_AND_ARGS: "update.php --wiki=datawiki --quick"
           <<: *run_maintenance
-        - task: update endroidwikiwiki
+        - task: update-endroidwikiwiki
           params:
             SCRIPT_AND_ARGS: "update.php --wiki=endroidwikiwiki --quick"
           <<: *run_maintenance
-        - task: update datawiki
+        - task: update-datawiki
           params:
             SCRIPT_AND_ARGS: "update.php --wiki=datawiki --quick"
           <<: *run_maintenance
-        - task: update armakothwiki
+        - task: update-armakothwiki
           params:
             SCRIPT_AND_ARGS: "update.php --wiki=armakothwiki --quick"
           <<: *run_maintenance
