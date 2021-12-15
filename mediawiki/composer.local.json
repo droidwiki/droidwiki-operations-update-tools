@@ -4,7 +4,8 @@
 		"pear/mail": "*",
 		"pear/mail_mime": "*",
 		"pear/mail_mime-decode": "*",
-		"pear/net_smtp": "*"
+		"pear/net_smtp": "*",
+		"symfony/string": "5.4.1"
 	},
 	"extra": {
 		"merge-plugin": {
