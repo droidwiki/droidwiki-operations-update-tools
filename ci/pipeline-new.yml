@@ -61,6 +61,8 @@ build_config: &build_config
       - name: mediawiki
     outputs:
       - name: config
+    params:
+      COMPOSER_ALLOW_SUPERUSER: 1
     run:
       path: sh
       args:
@@ -298,12 +300,13 @@ jobs:
               path: mw-config/private
           outputs:
             - name: artifact
+          params:
+            COMPOSER_ALLOW_SUPERUSER: 1
           run:
             path: sh
             args:
               - -exc
               - |
-                export COMPOSER_ALLOW_SUPERUSER=1
                 BUILD_ROOT=$PWD
 
                 cd $BUILD_ROOT/mw-config/mw-config
@@ -495,6 +498,8 @@ jobs:
               repository: droidwiki/php-build-image
           inputs:
             - name: mediawiki-config
+          params:
+            COMPOSER_ALLOW_SUPERUSER: 1
           run:
             path: sh
             args:
