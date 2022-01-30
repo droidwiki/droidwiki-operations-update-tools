@@ -145,8 +145,7 @@ class IPSet {
 		$snode =& $node;
 		$curBit = 0;
 		if ( isset( $_SERVER['HTTP_X_DEBUG_SERVER'] ) ) {
-			echo 'debug_print_backtrace_ipset';
-			debug_print_backtrace();
+			fwrite(STDOUT, 'debug_print_backtrace_ipset: ' . print_r(debug_backtrace(), true));
 		}
 		while ( 1 ) {
 			if ( $node === true ) {
