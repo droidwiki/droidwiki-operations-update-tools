@@ -316,7 +316,6 @@ jobs:
                 cp $BUILD_ROOT/update-tools/mediawiki/* ./
 
                 composer update --no-dev --ansi --no-progress --ignore-platform-reqs
-                cp $BUILD_ROOT/update-tools/plainfiles/IPSet.phpvendor/wikimedia/ip-ser/src/IPSet.php
 
                 php $BUILD_ROOT/mw-config/mw-config/multiversion/MWScript.php maintenance/mergeMessageFileList.php --wiki=droidwikiwiki --extensions-dir $BUILD_ROOT/main/extensions --output $BUILD_ROOT/mw-config/mw-config/ExtensionMessages.php
                 cp $BUILD_ROOT/mw-config/mw-config/ExtensionMessages.php $BUILD_ROOT/main/ExtensionMessages.php
