@@ -9,6 +9,11 @@
 		"symfony/deprecation-contracts": "^2.1",
 		"symfony/var-dumper": "^5.0"
 	},
+	"config": {
+		"allow-plugins": {
+			"composer/installers": true
+		}
+	},
 	"extra": {
 		"merge-plugin": {
 			"include": [
