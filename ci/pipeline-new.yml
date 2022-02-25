@@ -315,6 +315,9 @@ jobs:
                 cd $BUILD_ROOT/main
                 cp $BUILD_ROOT/update-tools/mediawiki/* ./
 
+                # Temporarily add composer/installers (from UniversalLanguageSelector?) to allowed-plugins, until https://phabricator.wikimedia.org/T298283 is resolved
+                cat composer.json | jq '.config["allow-plugins"]["composer/installers"] = true' > composer.json
+
                 composer update --no-dev --ansi --no-progress --ignore-platform-reqs
 
                 php $BUILD_ROOT/mw-config/mw-config/multiversion/MWScript.php maintenance/mergeMessageFileList.php --wiki=droidwikiwiki --extensions-dir $BUILD_ROOT/main/extensions --output $BUILD_ROOT/mw-config/mw-config/ExtensionMessages.php
