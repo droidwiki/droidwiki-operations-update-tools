@@ -316,7 +316,7 @@ jobs:
                 cp $BUILD_ROOT/update-tools/mediawiki/* ./
 
                 # Temporarily add composer/installers (from UniversalLanguageSelector?) to allowed-plugins, until https://phabricator.wikimedia.org/T298283 is resolved
-                cat composer.json | jq '.config["allow-plugins"]["composer/installers"] = true' > composer.json
+                cp composer.json composer.edit.json && cat composer.edit.json | jq '.config["allow-plugins"]["composer/installers"] = true' > composer.json && rm composer.edit.json
 
                 composer update --no-dev --ansi --no-progress --ignore-platform-reqs
 
