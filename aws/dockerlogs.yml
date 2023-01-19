@@ -54,6 +54,29 @@ Resources:
     Metadata:
       aws:cdk:path: DockerLogsStack/php/Resource
 
+  PhpExceptionMetricFilter:
+    Type: AWS::Logs::MetricFilter
+    Properties:
+      FilterPattern: 'exception-json'
+      LogGroupName: !Ref php1506478D
+      MetricTransformations:
+        - MetricValue: 1
+          MetricNamespace: MediaWiki
+          MetricName: ExceptionCount
+
+  PhpExceptionAlarm:
+    Type: Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: Fires whenever there is at least one exception flying around :D
+      ComparisonOperator: GreaterThanThreshold
+      DatapointsToAlarm: 1
+      MetricName: ExceptionCount
+      Namespace: MediaWiki
+      Period: 300
+      Threshold: 0
+      Statistic: Sum
+      TreatMissingData: notBreaching
+
   phpcanary3281AEFB:
     Type: AWS::Logs::LogGroup
     Properties:
