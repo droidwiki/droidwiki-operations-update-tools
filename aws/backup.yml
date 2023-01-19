@@ -1,0 +1,57 @@
+Resources:
+  backups09E71840:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: Private
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      BucketName: droidwiki-backups
+      LifecycleConfiguration:
+        Rules:
+          - ExpirationInDays: 4
+            Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+
+  backupsingest07ED90C1:
+    Type: AWS::IAM::Group
+    Properties:
+      ManagedPolicyArns:
+        - !Ref 'backupswritepolicy0CC99406'
+      Path: /backups/
+
+  backupsingestdroidwikiinfra5FCFFD6E:
+    Type: AWS::IAM::User
+    Properties:
+      Groups:
+        - !Ref 'backupsingest07ED90C1'
+      Path: /backups/
+
+  backupswritepolicy0CC99406:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:DeleteObject
+              - s3:ListBucket
+              - s3:GetBucketLocation
+            Effect: Allow
+            Resource:
+              - !Join
+                - ''
+                - - !GetAtt 'backups09E71840.Arn'
+                  - /*
+              - !GetAtt 'backups09E71840.Arn'
+        Version: '2012-10-17'
+      Description: ''
+      Path: /

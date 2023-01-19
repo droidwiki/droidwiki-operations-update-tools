@@ -1,0 +1,155 @@
+Resources:
+  backupsingest07ED90C1:
+    Type: AWS::IAM::Group
+    Properties:
+      ManagedPolicyArns:
+        - !Ref 'dockerawslogs843D4D8D'
+      Path: /docker-logs/
+    Metadata:
+      aws:cdk:path: DockerLogsStack/backups-ingest/Resource
+
+  dockerlogsdroidwikiinfraCBE7C752:
+    Type: AWS::IAM::User
+    Properties:
+      Groups:
+        - !Ref 'backupsingest07ED90C1'
+      Path: /docker-logs/
+    Metadata:
+      aws:cdk:path: DockerLogsStack/docker-logs--droidwiki-infra/Resource
+
+  dockerawslogs843D4D8D:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action: logs:CreateLogStream
+            Effect: Allow
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/docker/*'
+          - Action: logs:PutLogEvents
+            Effect: Allow
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/docker/*:log-stream:*'
+        Version: '2012-10-17'
+      Description: ''
+      Path: /
+    Metadata:
+      aws:cdk:path: DockerLogsStack/docker-awslogs/Resource
+
+  frontendproxyE816B3E3:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/frontend-proxy
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/frontend-proxy/Resource
+
+  php1506478D:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/php
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/php/Resource
+
+  phpcanary3281AEFB:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/php-canary
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/php-canary/Resource
+
+  jobrunner9A63EE12:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/jobrunner
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/jobrunner/Resource
+
+  cache08DE9BE4:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/cache
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/cache/Resource
+
+  memcached73606365:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/memcached
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/memcached/Resource
+
+  redisBFFF3E2F:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/redis
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/redis/Resource
+
+  thumbor0AC7A1D8:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/thumbor
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/thumbor/Resource
+
+  citoidC5265693:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/citoid
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/citoid/Resource
+
+  zotero7BDE30B6:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/zotero
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/zotero/Resource
+
+  parsoid5381197B:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/parsoid
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/parsoid/Resource
+
+  restbaseFB58C58F:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /docker/restbase
+      RetentionInDays: 7
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: DockerLogsStack/restbase/Resource

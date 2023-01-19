@@ -25,8 +25,8 @@ jobs:
           image_resource:
             type: registry-image
             source:
-              repository: node
-              tag: current-alpine
+              repository: amazon/aws-cli
+              tag: latest
           inputs:
             - name: update-tools
           run:
@@ -35,5 +35,5 @@ jobs:
             args:
               - -ec
               - |
-                npm --quiet ci --no-progress
-                npx cdk deploy --require-approval=never '*'
+                aws cloudformation deploy --template-file backup.yml --stack-name BackupStack --no-execute-changeset
+                aws cloudformation deploy --template-file dockerlogs.yml --stack-name DockerLogsStack --no-execute-changeset
