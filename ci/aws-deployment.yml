@@ -35,5 +35,6 @@ jobs:
             args:
               - -ec
               - |
-                aws cloudformation deploy --template-file backup.yml --stack-name BackupStack --no-execute-changeset
-                aws cloudformation deploy --template-file dockerlogs.yml --stack-name DockerLogsStack --no-execute-changeset
+                aws cloudformation deploy --template-file bootstrap.yml --stack-name bootstrap --capabilities CAPABILITY_NAMED_IAM
+                aws cloudformation deploy --template-file backup.yml --stack-name BackupStack --capabilities CAPABILITY_IAM
+                aws cloudformation deploy --template-file dockerlogs.yml --stack-name DockerLogsStack --capabilities CAPABILITY_IAM
