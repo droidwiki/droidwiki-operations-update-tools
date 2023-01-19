@@ -72,7 +72,8 @@ Resources:
       DatapointsToAlarm: 1
       MetricName: ExceptionCount
       Namespace: MediaWiki
-      Period: 300
+      EvaluationPeriods: 1
+      Period: 60
       Threshold: 0
       Statistic: Sum
       TreatMissingData: notBreaching
