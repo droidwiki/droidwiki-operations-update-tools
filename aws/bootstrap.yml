@@ -62,6 +62,7 @@ Resources:
                   - cloudformation:*
                   - s3:*
                   - logs:*
+                  - cloudwatch:*
                 Effect: Allow
                 Resource: '*'
             Version: '2012-10-17'
