@@ -1,3 +1,5 @@
 /vendor/
 .idea
 operations-update-tools.iml
+ci/secrets.yml
+
