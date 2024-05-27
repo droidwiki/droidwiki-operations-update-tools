@@ -22,7 +22,7 @@ index e39d772de5..32cb6c8a91 100644
 -		$id = preg_replace( '/(wiki\w*|wiktionary)$/', '', $id );
 -		$id = strtr( $id, [ '_' => '-' ] );
 -		if ( !$id ) {
--			$id = $site->getLanguageCode();
+-			$id = $site->getLanguageCode() ?? '';
 -		}
 -		return $id;
 +		// droidwiki.org customisation, see T172076
