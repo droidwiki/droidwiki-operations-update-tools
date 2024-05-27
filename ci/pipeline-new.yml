@@ -69,7 +69,7 @@ build_config: &build_config
         - -ec
         - |
           cd mediawiki-config
-          composer update --no-dev
+          composer update --no-dev --no-interaction
 
           cd ..
           cp -R mediawiki-config/. config/
@@ -310,7 +310,7 @@ jobs:
                 BUILD_ROOT=$PWD
 
                 cd $BUILD_ROOT/mw-config/mw-config
-                composer update --no-dev --ansi --no-progress
+                composer update --no-dev --ansi --no-progress --no-interaction
 
                 cd $BUILD_ROOT/main
                 cp $BUILD_ROOT/update-tools/mediawiki/* ./
@@ -318,7 +318,7 @@ jobs:
                 # Temporarily add composer/installers (from UniversalLanguageSelector?) to allowed-plugins, until https://phabricator.wikimedia.org/T298283 is resolved
                 cp composer.json composer.edit.json && cat composer.edit.json | jq '.config["allow-plugins"]["composer/installers"] = true' > composer.json && rm composer.edit.json
 
-                composer update --no-dev --ansi --no-progress --ignore-platform-reqs
+                composer update --no-dev --ansi --no-progress --ignore-platform-reqs --no-interaction
 
                 php $BUILD_ROOT/mw-config/mw-config/multiversion/MWScript.php maintenance/mergeMessageFileList.php --wiki=droidwikiwiki --extensions-dir $BUILD_ROOT/main/extensions --output $BUILD_ROOT/mw-config/mw-config/ExtensionMessages.php
                 cp $BUILD_ROOT/mw-config/mw-config/ExtensionMessages.php $BUILD_ROOT/main/ExtensionMessages.php
@@ -509,7 +509,7 @@ jobs:
               - -ec
               - |
                 cd mediawiki-config
-                composer update --ansi --no-progress --prefer-dist --profile -v
+                composer update --ansi --no-progress --prefer-dist --profile -v --no-interaction
 
                 composer test
 
