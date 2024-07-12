@@ -20,6 +20,19 @@ Resources:
     UpdateReplacePolicy: Retain
     DeletionPolicy: Retain
 
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref 
+      PolicyDocument:
+        Statement:
+          - Action: *
+            Principal: *
+            Efffect: Deny
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
   backupsingest07ED90C1:
     Type: AWS::IAM::Group
     Properties:
@@ -47,11 +60,18 @@ Resources:
               - s3:GetBucketLocation
             Effect: Allow
             Resource:
-              - !Join
-                - ''
-                - - !GetAtt 'backups09E71840.Arn'
-                  - /*
+              - !Sub '${backups09E71840.Arn}/*'
               - !GetAtt 'backups09E71840.Arn'
+            Condition:
+              IpAddress:
+                aws:SourceIp:
+                  - 37.120.178.25
+                  - 188.68.49.74
+              StringEquals:
+                aws:ResourceAccount:
+                  - !Ref AWS::AccountId
+                aws:RequestedRegion:
+                  - !Ref AWS::Region
         Version: '2012-10-17'
       Description: ''
       Path: /
