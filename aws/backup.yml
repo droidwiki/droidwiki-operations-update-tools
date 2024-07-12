@@ -23,7 +23,7 @@ Resources:
   BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref 
+      Bucket: !Ref backups09E71840
       PolicyDocument:
         Statement:
           - Action: '*'
