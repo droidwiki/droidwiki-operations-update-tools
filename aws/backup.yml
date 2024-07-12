@@ -25,13 +25,15 @@ Resources:
     Properties:
       Bucket: !Ref backups09E71840
       PolicyDocument:
+        Version: 2012-10-17
         Statement:
           - Action: '*'
             Principal: '*'
             Effect: Deny
+            Resource: '*'
             Condition:
               Bool:
-                aws:SecureTransport: false
+                'aws:SecureTransport': false
 
   backupsingest07ED90C1:
     Type: AWS::IAM::Group
@@ -68,9 +70,9 @@ Resources:
                   - 37.120.178.25
                   - 188.68.49.74
               StringEquals:
-                aws:ResourceAccount:
+                'aws:ResourceAccount':
                   - !Ref AWS::AccountId
-                aws:RequestedRegion:
+                'aws:RequestedRegion':
                   - !Ref AWS::Region
         Version: '2012-10-17'
       Description: ''
