@@ -25,9 +25,29 @@ Resources:
           - Action: logs:CreateLogStream
             Effect: Allow
             Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/docker/*'
+            Condition:
+              IpAddress:
+                aws:SourceIp:
+                  - 37.120.178.25
+                  - 188.68.49.74
+              StringEquals:
+                'aws:ResourceAccount':
+                  - !Ref AWS::AccountId
+                'aws:RequestedRegion':
+                  - !Ref AWS::Region
           - Action: logs:PutLogEvents
             Effect: Allow
             Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/docker/*:log-stream:*'
+            Condition:
+              IpAddress:
+                aws:SourceIp:
+                  - 37.120.178.25
+                  - 188.68.49.74
+              StringEquals:
+                'aws:ResourceAccount':
+                  - !Ref AWS::AccountId
+                'aws:RequestedRegion':
+                  - !Ref AWS::Region
         Version: '2012-10-17'
       Description: ''
       Path: /
