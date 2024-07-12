@@ -28,7 +28,7 @@ Resources:
         Statement:
           - Action: '*'
             Principal: '*'
-            Efffect: Deny
+            Effect: Deny
             Condition:
               Bool:
                 aws:SecureTransport: false
