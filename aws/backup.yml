@@ -30,7 +30,7 @@ Resources:
           - Action: '*'
             Principal: '*'
             Effect: Deny
-            Resource: '*'
+            Resource: !GetAtt backups09E71840.Arn
             Condition:
               Bool:
                 'aws:SecureTransport': false
