@@ -26,8 +26,8 @@ Resources:
       Bucket: !Ref 
       PolicyDocument:
         Statement:
-          - Action: *
-            Principal: *
+          - Action: '*'
+            Principal: '*'
             Efffect: Deny
             Condition:
               Bool:
