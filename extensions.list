@@ -4,7 +4,6 @@ AmazonPartnernet;master;https://github.com/droidwiki/mediawiki-extension-
 AntiSpoof
 BetaFeatures
 CheckUser
-CirrusSearch
 Cite
 CiteThisPage
 Citoid
@@ -15,9 +14,7 @@ CookieWarning;master;https://github.com/wikimedia/mediawiki-extensions-
 Disambiguator
 DroidWiki;master;https://github.com/droidwiki/mediawiki-extensions-
 Echo
-Elastica
 EmbedVideo;master;https://gitlab.com/hydrawiki/extensions/
-GeoData
 GlobalUsage
 googleAnalytics;master;https://github.com/wikimedia/mediawiki-extensions-
 GoogleAnalyticsTopPages;master;https://github.com/droidwiki/mediawiki-extensions-
